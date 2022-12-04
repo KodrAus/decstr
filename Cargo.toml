@@ -1,0 +1,29 @@
+[package]
+name = "sval-number"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+"std" = []
+"arbitrary-precision" = [
+    "std",
+    "num-bigint",
+    "num-traits",
+]
+
+[dependencies.ryu]
+version = "1"
+
+[dependencies.itoa]
+version = "1"
+
+[dependencies.num-bigint]
+version = "0.4"
+optional = true
+
+[dependencies.num-traits]
+version = "0.2"
+optional = true
+
+[dev-dependencies.dec]
+version = "0.4"
