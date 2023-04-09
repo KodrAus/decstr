@@ -1,5 +1,5 @@
 [package]
-name = "sval-number"
+name = "decstr"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,8 +7,8 @@ edition = "2021"
 "std" = []
 "arbitrary-precision" = [
     "std",
-    "num-bigint",
-    "num-traits",
+    "dep:num-bigint",
+    "dep:num-traits",
 ]
 
 [dependencies.ryu]
