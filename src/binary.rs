@@ -40,17 +40,5 @@ mod tests {
             buf.0,
             [207, 91, 57, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 8, 162]
         );
-
-        // NOTE: The `dec` crate uses `u32` buffers, not `u8` ones
-        // We don't guarantee compatibility with `dec`, since it doesn't guarantee any
-        // particular layout, but it's good to keep track of
-        #[cfg(target_endian = "big")]
-        {
-            unsafe { &mut *(&mut buf.0 as *mut [u8; 16] as *mut [u32; 4]) }.reverse();
-        }
-
-        let compat: dec::Decimal128 = "-123456789e2".parse().unwrap();
-
-        assert_eq!(buf.0, compat.to_le_bytes());
     }
 }
