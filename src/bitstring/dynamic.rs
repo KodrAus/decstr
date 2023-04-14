@@ -18,6 +18,13 @@ A dynamically sized decimal number with enough precision to fit any Rust primiti
 pub struct Bitstring(DynamicBinaryBuf<20>);
 
 impl Bitstring {
+    /**
+    Try create a decimal from the given buffer.
+
+    The buffer is assumed to be in little-endian byte-order already.
+    This method will fail if the buffer length is not a multiple of 4 bytes, or it's too
+    big to fit in a `Bitstring`.
+    */
     pub fn try_from_le_bytes(bytes: &[u8]) -> Result<Self, Error> {
         if bytes.len() == 0 || bytes.len() % 4 != 0 {
             Err(OverflowError::exact_size_mismatch(
@@ -34,11 +41,20 @@ impl Bitstring {
         Ok(Self(buf))
     }
 
+    /**
+    Get a reference to the underlying bitstring buffer.
+
+    This buffer is always stored in little-endain byte-order, regardless of the endianness
+    of the platform.
+    */
     pub fn as_le_bytes(&self) -> &[u8] {
         // Even on big-endian platforms we always encode numbers in little-endian order
         self.0.bytes()
     }
 
+    /**
+    Create a decimal with the finite value zero.
+    */
     pub fn zero() -> Self {
         Self::from(0u8)
     }

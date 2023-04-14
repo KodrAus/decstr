@@ -1,26 +1,44 @@
 macro_rules! classify {
     ($d:ident) => {
         impl $d {
+            /**
+            Whether or not the sign bit is set.
+            */
             pub fn is_sign_negative(&self) -> bool {
                 $crate::binary::is_sign_negative(&self.0)
             }
 
+            /**
+            Whether or not the decimal is a finite number.
+            */
             pub fn is_finite(&self) -> bool {
                 $crate::binary::is_finite(&self.0)
             }
 
+            /**
+            Whether or not the decimal is an infinity.
+            */
             pub fn is_infinite(&self) -> bool {
                 $crate::binary::is_infinite(&self.0)
             }
 
+            /**
+            Whether the decimal is not a NaN.
+            */
             pub fn is_nan(&self) -> bool {
                 $crate::binary::is_nan(&self.0)
             }
 
+            /**
+            Whether the decimal is a qNaN.
+            */
             pub fn is_quiet_nan(&self) -> bool {
                 $crate::binary::is_quiet_nan(&self.0)
             }
 
+            /**
+            Whether the decimal is a sNaN.
+            */
             pub fn is_signaling_nan(&self) -> bool {
                 $crate::binary::is_signaling_nan(&self.0)
             }
@@ -47,10 +65,20 @@ macro_rules! d2s {
 macro_rules! try_s2d {
     ($b:ty => $d:ident) => {
         impl $d {
+            /**
+            Try parse a decimal from a string.
+
+            This method is more efficient that `try_parse` if you already have a string to parse.
+            */
             pub fn try_parse_str(s: &str) -> Result<$d, $crate::Error> {
                 Ok($d($crate::convert::decimal_from_str(s)?))
             }
 
+            /**
+            Try parse a decimal from some formattable value.
+
+            This method can avoid needing to buffer an entire number upfront.
+            */
             pub fn try_parse(n: impl core::fmt::Display) -> Result<$d, $crate::Error> {
                 Ok($d($crate::convert::decimal_from_fmt(n, <$b>::default())?))
             }
@@ -77,6 +105,9 @@ macro_rules! try_s2d {
 macro_rules! i2d {
     ($i:ident => $convert:ident => $d:ident) => {
         impl $d {
+            /**
+            Convert an integer into a decimal.
+            */
             pub fn $convert(i: $i) -> $d {
                 $d($crate::convert::decimal_from_int(i).expect("infallible conversion"))
             }
@@ -101,6 +132,9 @@ macro_rules! i2d {
 macro_rules! try_i2d {
     ($i:ident => $convert:ident => $d:ident) => {
         impl $d {
+            /**
+            Try convert an integer into a decimal.
+            */
             pub fn $convert(i: $i) -> Option<$d> {
                 Some($d($crate::convert::decimal_from_int(i).ok()?))
             }
@@ -143,6 +177,9 @@ macro_rules! try_i2d {
 macro_rules! try_d2i {
     ($d:ident => $convert:ident => $i:ident) => {
         impl $d {
+            /**
+            Try convert a decimal into an integer.
+            */
             pub fn $convert(&self) -> Option<$i> {
                 $crate::convert::decimal_to_int(&self.0).ok()
             }
@@ -189,6 +226,9 @@ macro_rules! try_d2i {
 macro_rules! f2d {
     ($f:ident => $convert:ident => $d:ident) => {
         impl $d {
+            /**
+            Convert a binary floating point into a decimal.
+            */
             pub fn $convert(f: $f) -> $d {
                 $d($crate::convert::decimal_from_binary_float(f).expect("infallible conversion"))
             }
@@ -214,6 +254,9 @@ macro_rules! f2d {
 macro_rules! d2f {
     ($d:ident => $convert:ident => $f:ident) => {
         impl $d {
+            /**
+            Convert a decimal into a binary floating point.
+            */
             pub fn $convert(&self) -> $f {
                 $crate::convert::decimal_to_binary_float(&self.0).expect("infallible conversion")
             }
@@ -248,6 +291,9 @@ macro_rules! d2f {
 macro_rules! try_f2d {
     ($f:ident => $convert:ident => $d:ident) => {
         impl $d {
+            /**
+            Try convert a binary floating point into a decimal.
+            */
             pub fn $convert(f: $f) -> Option<$d> {
                 Some($d($crate::convert::decimal_from_binary_float(f).ok()?))
             }
@@ -291,6 +337,9 @@ macro_rules! try_f2d {
 macro_rules! try_d2f {
     ($d:ident => $convert:ident => $f:ident) => {
         impl $d {
+            /**
+            Try convert a decimal into a binary floating point.
+            */
             pub fn $convert(&self) -> Option<$f> {
                 Some($crate::convert::decimal_to_binary_float(&self.0).ok()?)
             }

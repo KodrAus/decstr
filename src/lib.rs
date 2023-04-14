@@ -74,6 +74,7 @@ This library does support very high precision in no-std, and can work with arbit
 `arbitrary-precision` feature is enabled.
 */
 
+#![deny(missing_docs)]
 #![allow(const_item_mutation)]
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 

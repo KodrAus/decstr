@@ -13,19 +13,36 @@ A 64bit decimal number.
 pub struct Bitstring64(Decimal64Buf);
 
 impl Bitstring64 {
+    /**
+    Create a decimal from the given buffer.
+
+    The buffer is assumed to be in little-endian byte-order already.
+    */
     pub fn from_le_bytes(bytes: [u8; 8]) -> Self {
         Self(Decimal64Buf(bytes))
     }
 
+    /**
+    Get a reference to the underlying bitstring buffer.
+
+    This buffer is always stored in little-endain byte-order, regardless of the endianness
+    of the platform.
+    */
     pub fn as_le_bytes(&self) -> &[u8; 8] {
         // Even on big-endian platforms we always encode numbers in little-endian order
         &(self.0).0
     }
 
+    /**
+    Create a decimal with the finite value zero.
+    */
     pub fn zero() -> Self {
         Self::from(0u8)
     }
 
+    /**
+    Create a decimal with its maximum finite value.
+    */
     pub fn max() -> Self {
         let mut buf = Decimal64Buf::ZERO;
 
@@ -34,6 +51,9 @@ impl Bitstring64 {
         Self(buf)
     }
 
+    /**
+    Create a decimal with its minimum finite value.
+    */
     pub fn min() -> Self {
         let mut buf = Decimal64Buf::ZERO;
 
@@ -42,6 +62,9 @@ impl Bitstring64 {
         Self(buf)
     }
 
+    /**
+    Create a decimal with its minimum positive non-zero value.
+    */
     pub fn min_positive() -> Self {
         let mut buf = Decimal64Buf::ZERO;
 

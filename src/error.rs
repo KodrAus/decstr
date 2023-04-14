@@ -1,14 +1,11 @@
 use core::fmt;
 
+/**
+An error encountered while working with decimals.
+*/
 #[derive(Debug)]
 pub struct Error {
     kind: ErrorKind,
-}
-
-impl Error {
-    pub fn kind(&self) -> &ErrorKind {
-        &self.kind
-    }
 }
 
 impl From<ParseError> for Error {
@@ -47,12 +44,15 @@ impl fmt::Display for Error {
 
 #[non_exhaustive]
 #[derive(Debug)]
-pub enum ErrorKind {
+enum ErrorKind {
     Parse(ParseError),
     Overflow(OverflowError),
     Convert(ConvertError),
 }
 
+/**
+An error encountered parsing a decimal from text.
+*/
 #[derive(Debug)]
 pub struct ParseError {
     kind: ParseErrorKind,
@@ -113,6 +113,9 @@ impl fmt::Display for ParseError {
     }
 }
 
+/**
+An error encountered creating a buffer to encode a decimal into.
+*/
 #[derive(Debug)]
 pub struct OverflowError {
     max_width_bytes: usize,
@@ -175,15 +178,24 @@ impl OverflowError {
         }
     }
 
+    /**
+    The maximum width supported by the given buffer.
+    */
     pub fn max_width_bytes(&self) -> usize {
         self.max_width_bytes
     }
 
+    /**
+    The minimum width required to encode the given decimal.
+    */
     pub fn required_width_bytes(&self) -> Option<usize> {
         self.required_width_bytes
     }
 }
 
+/**
+An error encountered converting between decimals and primitive types.
+*/
 #[derive(Debug)]
 pub struct ConvertError {
     target: &'static str,
