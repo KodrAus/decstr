@@ -33,6 +33,28 @@ not an implementation of decimal arithmetic. It also doesn't do rounding. If a n
 then you'll get `None`s instead of infinities or rounded values.
 
 This library does support very high precision in no-std, and can work with arbitrary precision when the `arbitrary-precision` feature is enabled.
+
+# Encoding
+
+| text | binary |
+| ----: | ------: |
+| _byte order_ | `llllllll                   mmmmmmmm` |
+| _bit order_ | `m------l_m------l_m------l_m------l` |
+| 0 | `00000000_00000000_01010000_00100010` |
+| -0 | `00000000_00000000_01010000_10100010` |
+| 0e1 | `00000000_00000000_01100000_00100010` |
+| 123 | `10100011_00000000_01010000_00100010` |
+| -123 | `10100011_00000000_01010000_10100010` |
+| 123.456 | `01010110_10001110_00100010_00100010` |
+| -123.456 | `01010110_10001110_00100010_10100010` |
+| inf | `00000000_00000000_00000000_01111000` |
+| -inf | `00000000_00000000_00000000_11111000` |
+| nan | `00000000_00000000_00000000_01111100` |
+| snan | `00000000_00000000_00000000_01111110` |
+| -nan | `00000000_00000000_00000000_11111100` |
+| -snan | `00000000_00000000_00000000_11111110` |
+| nan(123) | `10100011_00000000_00000000_01111100` |
+| snan(123) | `10100011_00000000_00000000_01111110` |
 */
 
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
