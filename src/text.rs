@@ -279,7 +279,12 @@ impl<B: TextWriter> DecimalParser<B> {
 
                         self.0 = DecimalParserInner::Infinity(inf)
                     }
-                    c => return Err(ParseError::unexpected_char(c, "", "")),
+                    c => {
+                        return Err(ParseError::unexpected_char(
+                            c,
+                            "a finite number, infinity, or NaN",
+                        ))
+                    }
                 },
                 // If we're parsing infinity then forward the rest of the input to it
                 DecimalParserInner::Infinity(ref mut infinity) => {
@@ -302,7 +307,9 @@ impl<B: TextWriter> DecimalParser<B> {
             DecimalParserInner::Finite(finite) => Ok(ParsedDecimal::Finite(finite.end()?)),
             DecimalParserInner::Infinity(infinity) => Ok(ParsedDecimal::Infinity(infinity.end()?)),
             DecimalParserInner::Nan(nan) => Ok(ParsedDecimal::Nan(nan.end()?)),
-            DecimalParserInner::AtStart { .. } => Err(ParseError::unexpected_end("", "")),
+            DecimalParserInner::AtStart { .. } => Err(ParseError::unexpected_end(
+                "a finite number, infinity, or NaN",
+            )),
         }
     }
 
@@ -341,11 +348,6 @@ impl<B: TextWriter> Write for DecimalParser<B> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    struct FiniteCase {
-        pre_formatted: ParsedFinite<PreFormattedTextBuf<'static>>,
-        buffered: ParsedFinite<FixedSizeTextBuf<25>>,
-    }
 
     #[test]
     fn parse_decimal_propagates_input_to_sub_parsers() {
@@ -659,12 +661,74 @@ mod tests {
     #[test]
     fn parse_invalid() {
         for (input, expected_err) in &[
-            ("-", "unexpected end of input"),
-            ("+", "unexpected end of input"),
+            (
+                "-",
+                "unexpected end of input, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "+",
+                "unexpected end of input, expected a finite number, infinity, or NaN",
+            ),
             ("1e", "unexpected end of input, expected a sign or digit"),
             ("1e-", "unexpected end of input, expected any digit"),
             ("1e+", "unexpected end of input, expected any digit"),
-            ("in", "unexpected end of input, expected f"),
+            ("in", "unexpected end of input, expected `f`"),
+            ("n", "unexpected end of input, expected `a`"),
+            ("s", "unexpected end of input, expected `n`"),
+            ("nan(", "unexpected end of input, expected `)`"),
+            ("nan(123", "unexpected end of input, expected `)`"),
+            ("snan(", "unexpected end of input, expected `)`"),
+            ("snan(123", "unexpected end of input, expected `)`"),
+            (
+                "x",
+                "unexpected character `x`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "-x",
+                "unexpected character `x`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "+x",
+                "unexpected character `x`, expected a finite number, infinity, or NaN",
+            ),
+            ("1x", "unexpected character `x`, expected any digit"),
+            ("1ex", "unexpected character `x`, expected any digit"),
+            ("1e-x", "unexpected character `x`, expected any digit"),
+            ("1e+x", "unexpected character `x`, expected any digit"),
+            ("1.", "unexpected end of input, expected a sign or digit"),
+            ("inx", "unexpected character `x`, expected `f`"),
+            ("nx", "unexpected character `x`"),
+            ("snx", "unexpected character `x`"),
+            (
+                "--",
+                "unexpected character `-`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "++",
+                "unexpected character `+`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "-+",
+                "unexpected character `+`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "+-",
+                "unexpected character `-`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                ".",
+                "unexpected character `.`, expected a finite number, infinity, or NaN",
+            ),
+            (
+                "..",
+                "unexpected character `.`, expected a finite number, infinity, or NaN",
+            ),
+            ("1.3.2", "unexpected character `.`, expected any digit"),
+            ("1e1.1", "unexpected character `.`, expected any digit"),
+            ("1-", "unexpected character `-`, expected any digit"),
+            ("1+", "unexpected character `+`, expected any digit"),
+            ("1e1-", "unexpected character `-`, expected any digit"),
+            ("1e1+", "unexpected character `+`, expected any digit"),
         ] {
             let actual_err = DecimalParser::parse_str(input).unwrap_err();
 

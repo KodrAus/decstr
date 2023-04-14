@@ -86,6 +86,9 @@ impl<B: TextWriter> NanParser<B> {
                 b'-' if self.is_at_start() => {
                     self.buf.nan_is_negative(&mut self.header, *b);
                 }
+                b'+' if self.is_at_start() => {
+                    self.buf.nan_is_positive(&mut self.header, *b);
+                }
                 // Skip over the leading `s` in `snan`
                 b'n' | b'N' if self.is_at_start() => {
                     self.buf.nan_is_quiet(&mut self.header, *b);
@@ -106,7 +109,7 @@ impl<B: TextWriter> NanParser<B> {
                 c if self.buf.expecting(*c) => {
                     self.buf.advance(*b);
                 }
-                c => return Err(ParseError::unexpected_char(*c, "", "")),
+                c => return Err(ParseError::unexpected_char(*c, "")),
             }
         }
 
@@ -143,7 +146,6 @@ impl<B: TextWriter> NanParser<B> {
             }),
             _ => Err(ParseError::unexpected_end(
                 str::from_utf8(&self.buf.expecting[0..1]).unwrap(),
-                "",
             )),
         }
     }

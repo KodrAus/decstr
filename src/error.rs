@@ -47,7 +47,6 @@ pub enum ErrorKind {
 pub struct ParseError {
     kind: ParseErrorKind,
     expected: &'static str,
-    note: &'static str,
 }
 
 #[derive(Debug)]
@@ -56,22 +55,16 @@ enum ParseErrorKind {
     End,
 }
 
-pub(crate) fn any_digit() -> &'static [u8] {
-    &[b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9']
-}
-
 impl ParseError {
-    pub(crate) fn unexpected_char(got: u8, expected: &'static str, note: &'static str) -> Self {
+    pub(crate) fn unexpected_char(got: u8, expected: &'static str) -> Self {
         ParseError {
-            note,
             expected,
             kind: ParseErrorKind::Char { got },
         }
     }
 
-    pub(crate) fn unexpected_end(expected: &'static str, note: &'static str) -> Self {
+    pub(crate) fn unexpected_end(expected: &'static str) -> Self {
         ParseError {
-            note,
             expected,
             kind: ParseErrorKind::End,
         }
@@ -82,19 +75,17 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
             ParseErrorKind::Char { got } => {
-                write!(f, "unexpected `{}`", got as char)?;
+                write!(f, "unexpected character `{}`", got as char)?;
             }
             ParseErrorKind::End => {
                 write!(f, "unexpected end of input")?;
             }
         };
 
-        if self.expected.len() > 0 {
+        if self.expected.len() == 1 {
+            write!(f, ", expected `{}`", self.expected)?;
+        } else if self.expected.len() > 0 {
             write!(f, ", expected {}", self.expected)?;
-        }
-
-        if self.note.len() > 0 {
-            write!(f, "; {}", self.note)?;
         }
 
         Ok(())

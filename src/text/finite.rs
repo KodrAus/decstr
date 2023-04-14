@@ -134,7 +134,7 @@ impl<B: TextWriter> FiniteParser<B> {
                     b'+' if !self.has_sign && !self.has_digits => {
                         self.significand_is_positive();
                     }
-                    c => return Err(ParseError::unexpected_char(c, "any digit", "")),
+                    c => return Err(ParseError::unexpected_char(c, "any digit")),
                 }
 
                 ascii = &ascii[1..];
@@ -162,7 +162,7 @@ impl<B: TextWriter> FiniteParser<B> {
                         self.has_sign = true;
                         self.buf.exponent_is_positive(exponent);
                     }
-                    c => return Err(ParseError::unexpected_char(c, "any digit", "")),
+                    c => return Err(ParseError::unexpected_char(c, "any digit")),
                 }
 
                 ascii = &ascii[1..];
@@ -181,14 +181,11 @@ impl<B: TextWriter> FiniteParser<B> {
         );
 
         if !self.has_digits {
-            return Err(ParseError::unexpected_end(
-                if !self.has_sign {
-                    "a sign or digit"
-                } else {
-                    "any digit"
-                },
-                "",
-            ));
+            return Err(ParseError::unexpected_end(if !self.has_sign {
+                "a sign or digit"
+            } else {
+                "any digit"
+            }));
         }
 
         Ok(ParsedFinite {

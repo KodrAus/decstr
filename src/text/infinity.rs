@@ -60,6 +60,10 @@ impl<B: TextWriter> InfinityParser<B> {
                     self.infinity.is_infinity_negative = true;
                     self.buf.advance_significand(*b);
                 }
+                b'+' if self.is_at_start() => {
+                    self.infinity.is_infinity_negative = false;
+                    self.buf.advance_significand(*b);
+                }
                 c if !self.expecting.is_empty() && self.expecting[0].eq_ignore_ascii_case(c) => {
                     self.expecting = &self.expecting[1..];
                     self.buf.advance_significand(*b);
@@ -68,7 +72,6 @@ impl<B: TextWriter> InfinityParser<B> {
                     return Err(ParseError::unexpected_char(
                         *c,
                         str::from_utf8(&self.expecting[0..1]).unwrap(),
-                        "",
                     ))
                 }
             }
@@ -88,7 +91,6 @@ impl<B: TextWriter> InfinityParser<B> {
             b"" | b"inity" => Ok(self.infinity),
             _ => Err(ParseError::unexpected_end(
                 str::from_utf8(&self.expecting[0..1]).unwrap(),
-                "",
             )),
         }
     }
