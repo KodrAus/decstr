@@ -114,7 +114,7 @@ impl fmt::Display for OverflowError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "the value cannot fit into a decimal of `{}` bytes without rounding",
+            "the value cannot fit into a decimal of `{}` bytes",
             self.max_width_bytes
         )?;
 

@@ -282,6 +282,7 @@ impl<B: TextWriter> DecimalParser<B> {
 
                         self.0 = DecimalParserInner::Infinity(inf)
                     }
+                    // Any other character is invalid
                     c => {
                         return Err(ParseError::unexpected_char(
                             c,

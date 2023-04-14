@@ -41,8 +41,13 @@ mod tests {
     }
 
     #[test]
-    fn decode_invalid() {
-        // Ensure we don't panic reading with invalid input
-        todo!()
+    fn decode() {
+        // Ensure we don't panic reading potentially nonsense encodings
+        for b in 0..255 {
+            let buf = Decimal128Buf([b; 16]);
+
+            let _ = decode_combination_finite(&buf);
+            let _ = decode_significand_trailing_declets(&buf).count();
+        }
     }
 }

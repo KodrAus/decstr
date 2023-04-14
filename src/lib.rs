@@ -105,11 +105,13 @@ impl Bitstring {
     }
 
     pub fn try_from_le_bytes(bytes: &[u8]) -> Result<Self, Error> {
-        assert_eq!(
-            0,
-            bytes.len() % 4,
-            "the byte buffer must be a multiple of 32 bits"
-        );
+        if bytes.len() == 0 || bytes.len() % 4 != 0 {
+            Err(OverflowError::exact_size_mismatch(
+                bytes.len(),
+                bytes.len() + 4 - (bytes.len() % 4),
+                "decimals must be a multiple of 32 bits (4 bytes)",
+            ))?;
+        }
 
         let mut buf = DynamicBinaryBuf::try_with_exactly_storage_width_bytes(bytes.len())?;
 
@@ -755,8 +757,17 @@ mod tests {
 
     #[test]
     fn err_decimal_from_invalid_byte_count() {
-        // non-32bit multiple, and too many bytes
-        todo!()
+        let err = Bitstring::try_from_le_bytes(&[]).unwrap_err();
+        assert_eq!("the value cannot fit into a decimal of `0` bytes; the width needed is `4` bytes; decimals must be a multiple of 32 bits (4 bytes)", &err.to_string());
+
+        let err = Bitstring::try_from_le_bytes(&[0; 3]).unwrap_err();
+        assert_eq!("the value cannot fit into a decimal of `3` bytes; the width needed is `4` bytes; decimals must be a multiple of 32 bits (4 bytes)", &err.to_string());
+
+        let err = Bitstring::try_from_le_bytes(&[0; 32]).unwrap_err();
+        assert_eq!(
+            "the value cannot fit into a decimal of `20` bytes; the width needed is `32` bytes",
+            &err.to_string()
+        );
     }
 
     #[test]
