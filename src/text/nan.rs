@@ -45,19 +45,19 @@ impl<B: TextWriter> NanParser<B> {
         }
     }
 
-    pub fn nan_is_positive(&mut self, b: u8) {
+    pub(in crate::text) fn nan_is_positive(&mut self, b: u8) {
         self.buf.nan_is_positive(&mut self.header, b)
     }
 
-    pub fn nan_is_negative(&mut self, b: u8) {
+    pub(in crate::text) fn nan_is_negative(&mut self, b: u8) {
         self.buf.nan_is_negative(&mut self.header, b)
     }
 
-    pub fn nan_is_quiet(&mut self, b: u8) {
+    pub(in crate::text) fn nan_is_quiet(&mut self, b: u8) {
         self.buf.nan_is_quiet(&mut self.header, b)
     }
 
-    pub fn nan_is_signaling(&mut self, b: u8) {
+    pub(in crate::text) fn nan_is_signaling(&mut self, b: u8) {
         self.buf.nan_is_signaling(&mut self.header, b)
     }
 

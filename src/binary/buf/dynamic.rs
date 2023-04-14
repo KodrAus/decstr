@@ -21,6 +21,7 @@ pub(crate) struct DynamicBinaryBuf<const N: usize> {
 }
 
 impl<const N: usize> DynamicBinaryBuf<N> {
+    #[cfg(test)]
     pub(crate) const ZERO: Self = DynamicBinaryBuf {
         buf: [0; N],
         len: N as u32,

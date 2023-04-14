@@ -35,17 +35,17 @@ impl<B: TextWriter> InfinityParser<B> {
         }
     }
 
-    pub fn advance(&mut self, b: u8) {
+    pub(in crate::text) fn advance(&mut self, b: u8) {
         self.expecting = &self.expecting[1..];
 
         self.buf.advance_significand(b);
     }
 
-    pub fn infinity_is_positive(&mut self) {
+    pub(in crate::text) fn infinity_is_positive(&mut self) {
         self.infinity.is_infinity_negative = false;
     }
 
-    pub fn infinity_is_negative(&mut self) {
+    pub(in crate::text) fn infinity_is_negative(&mut self) {
         self.infinity.is_infinity_negative = true;
     }
 
