@@ -144,54 +144,54 @@ macro_rules! impl_binary_integer {
 macro_rules! impl_binary_unsigned_integer {
     ($(($i:ty, $bytes:ty)),*) => {
         $(
-                impl Integer for $i {
-                    type Bytes = $bytes;
+            impl Integer for $i {
+                type Bytes = $bytes;
 
-                    fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self> {
-                        let mut i: $i = 0;
+                fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self> {
+                    let mut i: $i = 0;
 
-                        if is_negative {
-                            return None;
-                        } else {
-                            for b in ascii {
-                                i = i.checked_mul(10)?;
-                                i = i.checked_add((b - b'0') as $i)?;
-                            }
+                    if is_negative {
+                        return None;
+                    } else {
+                        for b in ascii {
+                            i = i.checked_mul(10)?;
+                            i = i.checked_add((b - b'0') as $i)?;
                         }
-
-                        Some(i)
                     }
 
-                    fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
-                        let mut buf = [0; (<$i>::BITS / 8) as usize];
-
-                        for (i, b) in bytes.enumerate() {
-                            buf[i] = b;
-                        }
-
-                        Self::from_le_bytes(buf)
-                    }
-
-                    fn from_i32(exp: i32) -> Self {
-                        exp as $i
-                    }
-
-                    fn to_i32(&self) -> Option<i32> {
-                        (*self).try_into().ok()
-                    }
-
-                    fn is_negative(&self) -> bool {
-                        false
-                    }
-
-                    fn to_le_bytes(&self) -> Self::Bytes {
-                        <$i>::to_le_bytes(*self)
-                    }
-
-                    fn to_fmt<W: fmt::Write>(&self, mut out: W) -> fmt::Result {
-                        write!(out, "{}", self)
-                    }
+                    Some(i)
                 }
+
+                fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
+                    let mut buf = [0; (<$i>::BITS / 8) as usize];
+
+                    for (i, b) in bytes.enumerate() {
+                        buf[i] = b;
+                    }
+
+                    Self::from_le_bytes(buf)
+                }
+
+                fn from_i32(exp: i32) -> Self {
+                    exp as $i
+                }
+
+                fn to_i32(&self) -> Option<i32> {
+                    (*self).try_into().ok()
+                }
+
+                fn is_negative(&self) -> bool {
+                    false
+                }
+
+                fn to_le_bytes(&self) -> Self::Bytes {
+                    <$i>::to_le_bytes(*self)
+                }
+
+                fn to_fmt<W: fmt::Write>(&self, mut out: W) -> fmt::Result {
+                    write!(out, "{}", self)
+                }
+            }
         )*
     };
 }
@@ -366,8 +366,5 @@ where
     let parsed = parser.end().expect("failed to finish parsing");
 
     // Convert the parsed value into a float
-    str::from_utf8(parsed.finite_buf.get_ascii())
-        .expect("non-UTF8")
-        .parse()
-        .ok()
+    unsafe { str::from_utf8_unchecked(parsed.finite_buf.get_ascii()) }.parse().ok()
 }
