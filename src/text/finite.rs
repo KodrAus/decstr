@@ -65,13 +65,21 @@ impl<B: TextWriter> FiniteParser<B> {
             .push_significand_digit(&mut self.significand, digit)
     }
 
-    pub fn significand_is_negative(&mut self) {
+    pub fn checked_significand_is_negative(&mut self) -> Result<(), ParseError> {
+        if self.buf.remaining_capacity() == Some(0) {
+            return Err(ParseError::buffer_too_small());
+        }
+
+        Ok(self.significand_is_negative())
+    }
+
+    pub(in crate::text) fn significand_is_negative(&mut self) {
         self.has_sign = true;
 
         self.buf.significand_is_negative(&mut self.significand)
     }
 
-    pub fn significand_is_positive(&mut self) {
+    pub(in crate::text) fn significand_is_positive(&mut self) {
         self.has_sign = true;
 
         self.buf.significand_is_positive(&mut self.significand)
@@ -85,7 +93,15 @@ impl<B: TextWriter> FiniteParser<B> {
             .push_significand_decimal_point(&mut self.significand)
     }
 
-    pub fn begin_exponent(&mut self) {
+    pub fn checked_begin_exponent(&mut self) -> Result<(), ParseError> {
+        if self.buf.remaining_capacity() == Some(0) {
+            return Err(ParseError::buffer_too_small());
+        }
+
+        Ok(self.begin_exponent())
+    }
+
+    pub(in crate::text) fn begin_exponent(&mut self) {
         self.has_sign = false;
         self.has_digits = false;
 

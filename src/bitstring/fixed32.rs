@@ -1,14 +1,10 @@
-use core::fmt;
-
 use crate::{
     binary::{
         encode_max,
         encode_min,
         Decimal32Buf,
     },
-    convert,
     text::FixedSizeTextBuf,
-    Error,
 };
 
 /**
@@ -58,7 +54,7 @@ impl Bitstring32 {
 
 classify!(Bitstring32);
 
-try_s2d!(FixedSizeTextBuf::<16> => Bitstring32);
+try_s2d!(FixedSizeTextBuf::<32> => Bitstring32);
 d2s!(Bitstring32);
 
 try_f2d!(f32 => from_f32 => Bitstring32);

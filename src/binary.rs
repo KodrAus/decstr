@@ -94,7 +94,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(const_item_mutation)]
     fn encode_min_max_dynamic() {
         encode_max(&mut DynamicBinaryBuf::<20>::ZERO, false);
         encode_max(&mut DynamicBinaryBuf::<20>::ZERO, true);

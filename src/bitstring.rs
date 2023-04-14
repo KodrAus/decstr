@@ -37,7 +37,7 @@ macro_rules! d2s {
         }
 
         impl core::fmt::Display for $d {
-            fn fmt(&self, f: &mut fmt::Formatter) -> core::fmt::Result {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 $crate::convert::decimal_to_fmt(&self.0, f)
             }
         }
@@ -47,12 +47,12 @@ macro_rules! d2s {
 macro_rules! try_s2d {
     ($b:ty => $d:ident) => {
         impl $d {
-            pub fn try_parse_str(s: &str) -> Result<$d, Error> {
-                Ok($d(convert::decimal_from_str(s)?))
+            pub fn try_parse_str(s: &str) -> Result<$d, $crate::Error> {
+                Ok($d($crate::convert::decimal_from_str(s)?))
             }
 
-            pub fn try_parse(n: impl fmt::Display) -> Result<$d, Error> {
-                Ok($d(convert::decimal_from_fmt(n, <$b>::default())?))
+            pub fn try_parse(n: impl core::fmt::Display) -> Result<$d, $crate::Error> {
+                Ok($d($crate::convert::decimal_from_fmt(n, <$b>::default())?))
             }
         }
 

@@ -344,7 +344,7 @@ where
 
     // Parse the significand
     if is_negative {
-        parser.significand_is_negative();
+        parser.checked_significand_is_negative().ok()?;
     }
 
     let mut written = 0;
@@ -357,7 +357,7 @@ where
     }
 
     // Parse the exponent
-    parser.begin_exponent();
+    parser.checked_begin_exponent().ok()?;
 
     parser
         .parse_fmt(exponent.as_display())

@@ -1,11 +1,8 @@
-use core::fmt;
-
 use crate::{
     binary::{
         BinaryBuf,
         DynamicBinaryBuf,
     },
-    convert,
     text::FixedSizeTextBuf,
     Error,
     OverflowError,
