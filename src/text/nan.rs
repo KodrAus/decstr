@@ -83,9 +83,16 @@ impl<B: TextWriter> NanParser<B> {
 
         for b in ascii {
             match b {
+                // Parse a digit in the payload
+                b'0'..=b'9' if self.payload.is_some() => {
+                    self.buf
+                        .push_payload_digit(self.payload.as_mut().expect("missing buffer"), *b);
+                }
+                // Mark the NaN as negative
                 b'-' if self.is_at_start() => {
                     self.buf.nan_is_negative(&mut self.header, *b);
                 }
+                // Uncommon: Mark the NaN as positive
                 b'+' if self.is_at_start() => {
                     self.buf.nan_is_positive(&mut self.header, *b);
                 }
@@ -93,22 +100,23 @@ impl<B: TextWriter> NanParser<B> {
                 b'n' | b'N' if self.is_at_start() => {
                     self.buf.nan_is_quiet(&mut self.header, *b);
                 }
+                // Mark the NaN as signaling
                 b's' | b'S' if self.is_at_start() => {
                     self.buf.nan_is_signaling(&mut self.header, *b);
                 }
-                b'0'..=b'9' if self.payload.is_some() => {
-                    self.buf
-                        .push_payload_digit(self.payload.as_mut().expect("missing buffer"), *b);
-                }
+                // Begin the payload
                 b'(' if self.buf.expecting(b'(') => {
                     self.payload = Some(self.buf.begin_payload(*b));
                 }
+                // Complete the payload
                 b')' if self.buf.expecting(b')') => {
                     self.buf.end_payload(*b);
                 }
+                // Advance through the set of expected chars
                 c if self.buf.expecting(*c) => {
                     self.buf.advance(*b);
                 }
+                // Any other character is invalid
                 c => return Err(ParseError::unexpected_char(*c, "")),
             }
         }

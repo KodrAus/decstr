@@ -729,6 +729,14 @@ mod tests {
             ("1+", "unexpected character `+`, expected any digit"),
             ("1e1-", "unexpected character `-`, expected any digit"),
             ("1e1+", "unexpected character `+`, expected any digit"),
+            ("n(", "unexpected character `(`"),
+            ("sn(", "unexpected character `(`"),
+            ("nan(1.2)", "unexpected character `.`"),
+            ("snan(1.2)", "unexpected character `.`"),
+            ("nan(-1)", "unexpected character `-`"),
+            ("snan(-1)", "unexpected character `-`"),
+            ("nan(1e2", "unexpected character `e`"),
+            ("snan(1e2)", "unexpected character `e`"),
         ] {
             let actual_err = DecimalParser::parse_str(input).unwrap_err();
 

@@ -56,18 +56,22 @@ impl<B: TextWriter> InfinityParser<B> {
     pub fn parse_ascii(&mut self, ascii: &[u8]) -> Result<(), ParseError> {
         for b in ascii {
             match b {
+                // Mark the infinity as negative
                 b'-' if self.is_at_start() => {
                     self.infinity.is_infinity_negative = true;
                     self.buf.advance_significand(*b);
                 }
+                // Uncommon: mark the infinity as positive
                 b'+' if self.is_at_start() => {
                     self.infinity.is_infinity_negative = false;
                     self.buf.advance_significand(*b);
                 }
+                // Advance through the set of expected characters
                 c if !self.expecting.is_empty() && self.expecting[0].eq_ignore_ascii_case(c) => {
                     self.expecting = &self.expecting[1..];
                     self.buf.advance_significand(*b);
                 }
+                // Any other character is invalid
                 c => {
                     return Err(ParseError::unexpected_char(
                         *c,
