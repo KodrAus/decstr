@@ -27,11 +27,20 @@ impl From<OverflowError> for Error {
     }
 }
 
+impl From<ConvertError> for Error {
+    fn from(err: ConvertError) -> Self {
+        Error {
+            kind: ErrorKind::Convert(err),
+        }
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
             ErrorKind::Parse(ref err) => fmt::Display::fmt(err, f),
             ErrorKind::Overflow(ref err) => fmt::Display::fmt(err, f),
+            ErrorKind::Convert(ref err) => fmt::Display::fmt(err, f),
         }
     }
 }
@@ -41,6 +50,7 @@ impl fmt::Display for Error {
 pub enum ErrorKind {
     Parse(ParseError),
     Overflow(OverflowError),
+    Convert(ConvertError),
 }
 
 #[derive(Debug)]
@@ -174,6 +184,34 @@ impl OverflowError {
     }
 }
 
+#[derive(Debug)]
+pub struct ConvertError {
+    target: &'static str,
+    reason: &'static str,
+}
+
+impl ConvertError {
+    pub(crate) fn would_overflow(target: &'static str) -> Self {
+        ConvertError {
+            target,
+            reason: "would overflow",
+        }
+    }
+
+    pub(crate) fn non_integer(target: &'static str) -> Self {
+        ConvertError {
+            target,
+            reason: "would require rounding to an integer",
+        }
+    }
+}
+
+impl fmt::Display for ConvertError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "conversion to `{}` {}", self.target, self.reason)
+    }
+}
+
 #[cfg(feature = "std")]
 mod std_support {
     use super::*;
@@ -185,4 +223,6 @@ mod std_support {
     impl error::Error for ParseError {}
 
     impl error::Error for OverflowError {}
+
+    impl error::Error for ConvertError {}
 }

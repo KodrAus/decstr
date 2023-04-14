@@ -9,6 +9,8 @@ needs to take place.
 The output from the text parser is a `ParsedDecimal` that classifies the number and gives offsets
 to any digits or other features within it. These offsets can be used to convert the number into
 different representations.
+
+This module is organized around _kinds_ of numbers.
 */
 
 mod buf;

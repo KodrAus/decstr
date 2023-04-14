@@ -12,17 +12,17 @@ use crate::{
 use core::cmp;
 
 #[cfg(feature = "arbitrary-precision")]
-mod arbitrary_size;
-mod dynamic_size;
-mod fixed_size;
+mod arbitrary;
+mod dynamic;
+mod fixed;
 
 pub(crate) use self::{
-    dynamic_size::*,
-    fixed_size::*,
+    dynamic::*,
+    fixed::*,
 };
 
 #[cfg(feature = "arbitrary-precision")]
-pub(crate) use self::arbitrary_size::*;
+pub(crate) use self::arbitrary::*;
 
 /**
 A buffer for an IEEE754-2019 compatible decimal-interchange-formatted number.

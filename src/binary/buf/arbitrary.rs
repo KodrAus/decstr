@@ -5,6 +5,8 @@ use core::{
 
 use crate::{
     binary::{
+        emax,
+        emin,
         exponent::{
             add_bias,
             sub_bias,
@@ -163,6 +165,16 @@ impl BinaryExponent for ArbitrarySizedBinaryExponent {
     #[must_use]
     fn unbias<D: BinaryBuf>(&self, decimal: &D) -> Self {
         ArbitrarySizedBinaryExponent(sub_bias(decimal, self.0.clone()))
+    }
+
+    #[must_use]
+    fn emax<D: BinaryBuf>(decimal: &D) -> Self {
+        ArbitrarySizedBinaryExponent(emax(decimal.storage_width_bits()))
+    }
+
+    #[must_use]
+    fn emin<D: BinaryBuf>(decimal: &D) -> Self {
+        ArbitrarySizedBinaryExponent(emin(decimal.storage_width_bits()))
     }
 }
 

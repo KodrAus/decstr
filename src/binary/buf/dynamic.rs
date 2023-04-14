@@ -20,7 +20,6 @@ pub(crate) struct DynamicBinaryBuf<const N: usize> {
     len: u32,
 }
 
-#[cfg(test)]
 impl<const N: usize> DynamicBinaryBuf<N> {
     pub(crate) const EMPTY: Self = DynamicBinaryBuf {
         buf: [0; N],
@@ -130,6 +129,16 @@ impl BinaryExponent for DynamicBinaryExponent {
     #[must_use]
     fn unbias<D: BinaryBuf>(&self, decimal: &D) -> Self {
         DynamicBinaryExponent(self.0.unbias(decimal))
+    }
+
+    #[must_use]
+    fn emax<D: BinaryBuf>(decimal: &D) -> Self {
+        DynamicBinaryExponent(i32::emax(decimal))
+    }
+
+    #[must_use]
+    fn emin<D: BinaryBuf>(decimal: &D) -> Self {
+        DynamicBinaryExponent(i32::emin(decimal))
     }
 }
 

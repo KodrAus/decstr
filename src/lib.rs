@@ -4,42 +4,20 @@ A format for exchanging arbitrary precision [decimal floating-point](https://en.
 This library converts text-based numbers like `-123.456e7` into bitstrings like `01010110_10001110_10010010_10100010`.
 
 Specifically, it implements support for an **[IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) compatible
-[decimal floating-point](https://en.wikipedia.org/wiki/Decimal_floating_point) bitstring,
-using [densely-packed-decimal](https://en.wikipedia.org/wiki/Densely_packed_decimal) encoding, in
-[little-endian byteorder](https://en.wikipedia.org/wiki/Endianness)**. Along with the bitstring encoding
-there is an equivalent text-based one that can represent all the same values. High-level types that convert
-between these two formats and standard Rust numeric types are provided.
-
-# Why decimal bitstrings?
-
-Decimal bitstrings are a nice way to encode and exchange numbers between systems.
-
-Decimal bitstrings can be better for exchanging numbers than text because:
-
-- They're more compact than text. Instead of encoding 1 digit per byte (8 bits), you get 3 digits per 10 bits.
-- It's quick to tell if a number is positive, negative, whole, infinity, or NaN. You don't need to reparse the number.
-
-Decimal bitstrings can be better for exchanging numbers than binary bitstrings because:
-
-- They're a fairly direct translation from ASCII. You don't need arbitrary-precision arithmetic to encode a human-readable
-number into a decimal bitstring.
-- They can exactly encode base-10 numbers, which is the base most modern number systems use.
-- They're a newer standard, so they avoid some ambiguities around NaN payloads and signaling that affect the portability of binary bitstrings.
-
-# Features and limitations
-
-This library _only_ does conversions between Rust's primitive number types, numbers encoded as text, and decimal bitstrings. It's
-not an implementation of decimal arithmetic. It also doesn't do rounding. If a number can't be encoded in a decimal bitstring of a given width
-then you'll get `None`s instead of infinities or rounded values.
-
-This library does support very high precision in no-std, and can work with arbitrary precision when the `arbitrary-precision` feature is enabled.
+[decimal floating-point](https://en.wikipedia.org/wiki/Decimal_floating_point) bitstring, using
+[densely-packed-decimal](https://en.wikipedia.org/wiki/Densely_packed_decimal) encoding, in
+[little-endian byte-order](https://en.wikipedia.org/wiki/Endianness)**. Along with the bitstring encoding there is an
+equivalent text-based one that can represent all the same values. High-level types that convert between these two formats
+and standard Rust numeric types are provided.
 
 # Encoding
 
+The following table demonstrates how various numbers are encoded as 32bit decimals by this library to give you an idea of
+how the format works:
+
 | text | binary |
 | ----: | ------: |
-| _byte order_ | `llllllll                   mmmmmmmm` |
-| _bit order_ | `m------l_m------l_m------l_m------l` |
+| _bit layout_ | `tttttttt_tttttttt_ggggtttt_sggggggg` |
 | 0 | `00000000_00000000_01010000_00100010` |
 | -0 | `00000000_00000000_01010000_10100010` |
 | 0e1 | `00000000_00000000_01100000_00100010` |
@@ -55,6 +33,45 @@ This library does support very high precision in no-std, and can work with arbit
 | -snan | `00000000_00000000_00000000_11111110` |
 | nan(123) | `10100011_00000000_00000000_01111100` |
 | snan(123) | `10100011_00000000_00000000_01111110` |
+
+where:
+
+- `s`: The sign bit.
+- `g`: The combination field.
+- `t`: The trailing significand.
+
+Note that this library _always_ encodes in little-endian byte-order, regardless of the endianness of the underlying platform.
+
+More sizes besides 32bit are supported. The table uses it to minimize space.
+
+# Why decimal bitstrings?
+
+The decimal bitstrings specified in IEEE 754 aren't as widely known as their binary counterparts, but are a good target
+for exchanging numbers.
+
+Compared with text, decimal bitstrings are:
+
+- Compact. Instead of encoding 1 digit per byte (8 bits), you get 3 digits per 10 bits.
+- Cheap to classify. You can tell from a single byte whether or not a number is positive, negative, whole, infinity, or
+NaN. You don't need to reparse the number.
+
+Compared with binary (base-2) bitstrings, decimal bitstrings are:
+
+- Easy to convert between text. You don't need arbitrary-precision arithmetic to encode a human-readable number into a decimal bitstring.
+- Precise. You can exactly encode base-10 numbers, which is the base most modern number systems use.
+- Consistent. They're a newer standard, so they avoid some ambiguities around NaN payloads and signaling that affect the
+portability of binary bitstrings.
+
+# Features and limitations
+
+This library _only_ does conversions between Rust's primitive number types, numbers encoded as text, and decimal bitstrings.
+It's not an implementation of decimal arithmetic. It also doesn't do rounding. If a number can't be encoded in a decimal
+bitstring of a given width then you'll get `None`s instead of infinities or rounded values.
+
+Decimal numbers in IEEE 754 are non-normalized by-design. The number `1.00` will encode differently to `1` or `1.0`.
+
+This library does support very high precision in no-std, and can work with arbitrary precision when the
+`arbitrary-precision` feature is enabled.
 */
 
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
@@ -77,358 +94,17 @@ There is no special handling for decimal numbers of specific precisions. This is
 simplicity and performance. The same implementation handles encoding decimal32 up to decimal256 and beyond.
 */
 
-#[macro_use]
-mod error;
-
 mod binary;
+mod bitstring;
 mod convert;
+mod error;
 mod num;
 mod text;
 
-use binary::{
-    Decimal128Buf,
-    Decimal32Buf,
-    Decimal64Buf,
+pub use self::{
+    bitstring::*,
+    error::*,
 };
-
-use crate::{
-    binary::{
-        is_finite,
-        is_infinite,
-        is_nan,
-        is_quiet_nan,
-        is_sign_negative,
-        is_signaling_nan,
-        BinaryBuf,
-        DynamicBinaryBuf,
-    },
-    text::{
-        FixedSizeTextBuf,
-        ParsedDecimal,
-        TextBuf,
-    },
-};
-use core::fmt;
-
-pub use crate::error::*;
-
-const UP_TO_160_BYTE_BUF: usize = 20;
-const UP_TO_160_TEXT_BUF: usize = 128;
-
-/**
-A dynamically sized decimal number with enough precision to fit any Rust primitive number.
-*/
-pub struct Bitstring(DynamicBinaryBuf<UP_TO_160_BYTE_BUF>);
-
-impl Bitstring {
-    pub fn try_parse_str(n: &str) -> Result<Self, Error> {
-        Ok(Bitstring(convert::decimal_from_str(n)?))
-    }
-
-    pub fn try_parse(n: impl fmt::Display) -> Result<Self, Error> {
-        Ok(Bitstring(convert::decimal_from_fmt(
-            n,
-            FixedSizeTextBuf::<UP_TO_160_TEXT_BUF>::default(),
-        )?))
-    }
-
-    pub fn try_from_le_bytes(bytes: &[u8]) -> Result<Self, Error> {
-        if bytes.len() == 0 || bytes.len() % 4 != 0 {
-            Err(OverflowError::exact_size_mismatch(
-                bytes.len(),
-                bytes.len() + 4 - (bytes.len() % 4),
-                "decimals must be a multiple of 32 bits (4 bytes)",
-            ))?;
-        }
-
-        let mut buf = DynamicBinaryBuf::try_with_exactly_storage_width_bytes(bytes.len())?;
-
-        buf.bytes_mut().copy_from_slice(bytes);
-
-        Ok(Bitstring(buf))
-    }
-
-    pub fn from_f32(f: f32) -> Self {
-        Bitstring(convert::decimal_from_binary_float(f).expect("always fits"))
-    }
-
-    pub fn from_f64(f: f64) -> Self {
-        Bitstring(convert::decimal_from_binary_float(f).expect("always fits"))
-    }
-
-    pub fn from_i8(i: i8) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_i16(i: i16) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_i32(i: i32) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_i64(i: i64) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_i128(i: i128) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_u8(i: u8) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_u16(i: u16) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_u32(i: u32) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_u64(i: u64) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn from_u128(i: u128) -> Self {
-        Bitstring(convert::decimal_from_int(i).expect("always fits"))
-    }
-
-    pub fn to_i8(&self) -> Option<i8> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_i16(&self) -> Option<i16> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_i32(&self) -> Option<i32> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_i64(&self) -> Option<i64> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_i128(&self) -> Option<i128> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_u8(&self) -> Option<u8> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_u16(&self) -> Option<u16> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_u32(&self) -> Option<u32> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_u64(&self) -> Option<u64> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_u128(&self) -> Option<u128> {
-        convert::decimal_to_int(&self.0)
-    }
-
-    pub fn to_f32(&self) -> Option<f32> {
-        convert::decimal_to_binary_float(&self.0)
-    }
-
-    pub fn to_f64(&self) -> Option<f64> {
-        convert::decimal_to_binary_float(&self.0)
-    }
-
-    pub fn as_le_bytes(&self) -> &[u8] {
-        // Even on big-endian platforms we always encode numbers in little-endian order
-        self.0.bytes()
-    }
-
-    pub fn is_sign_negative(&self) -> bool {
-        is_sign_negative(&self.0)
-    }
-
-    pub fn is_finite(&self) -> bool {
-        is_finite(&self.0)
-    }
-
-    pub fn is_infinite(&self) -> bool {
-        is_infinite(&self.0)
-    }
-
-    pub fn is_nan(&self) -> bool {
-        is_nan(&self.0)
-    }
-
-    pub fn is_quiet_nan(&self) -> bool {
-        is_quiet_nan(&self.0)
-    }
-
-    pub fn is_signaling_nan(&self) -> bool {
-        is_signaling_nan(&self.0)
-    }
-}
-
-impl fmt::Debug for Bitstring {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        convert::decimal_to_fmt(&self.0, f)
-    }
-}
-
-impl fmt::Display for Bitstring {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        convert::decimal_to_fmt(&self.0, f)
-    }
-}
-
-impl From<u8> for Bitstring {
-    fn from(i: u8) -> Bitstring {
-        Bitstring::from_u8(i)
-    }
-}
-
-impl From<u16> for Bitstring {
-    fn from(i: u16) -> Bitstring {
-        Bitstring::from_u16(i)
-    }
-}
-
-impl From<u32> for Bitstring {
-    fn from(i: u32) -> Bitstring {
-        Bitstring::from_u32(i)
-    }
-}
-
-impl From<u64> for Bitstring {
-    fn from(i: u64) -> Bitstring {
-        Bitstring::from_u64(i)
-    }
-}
-
-impl From<u128> for Bitstring {
-    fn from(i: u128) -> Bitstring {
-        Bitstring::from_u128(i)
-    }
-}
-
-impl From<i8> for Bitstring {
-    fn from(i: i8) -> Bitstring {
-        Bitstring::from_i8(i)
-    }
-}
-
-impl From<i16> for Bitstring {
-    fn from(i: i16) -> Bitstring {
-        Bitstring::from_i16(i)
-    }
-}
-
-impl From<i32> for Bitstring {
-    fn from(i: i32) -> Bitstring {
-        Bitstring::from_i32(i)
-    }
-}
-
-impl From<i64> for Bitstring {
-    fn from(i: i64) -> Bitstring {
-        Bitstring::from_i64(i)
-    }
-}
-
-impl From<i128> for Bitstring {
-    fn from(i: i128) -> Bitstring {
-        Bitstring::from_i128(i)
-    }
-}
-
-impl From<f32> for Bitstring {
-    fn from(i: f32) -> Bitstring {
-        Bitstring::from_f32(i)
-    }
-}
-
-impl From<f64> for Bitstring {
-    fn from(i: f64) -> Bitstring {
-        Bitstring::from_f64(i)
-    }
-}
-
-/**
-A 32bit decimal number.
-*/
-pub struct Bitstring32(Decimal32Buf);
-
-/**
-A 64bit decimal number.
-*/
-pub struct Bitstring64(Decimal64Buf);
-
-/**
-A 128bit decimal number.
-*/
-pub struct Bitstring128(Decimal128Buf);
-
-/**
-An arbitrary precision decimal number.
-*/
-#[cfg(feature = "arbitrary-precision")]
-pub struct BigBitstring(binary::ArbitrarySizedBinaryBuf);
-
-#[cfg(feature = "arbitrary-precision")]
-impl BigBitstring {
-    pub fn try_parse_str(n: &str) -> Result<Self, Error> {
-        Ok(BigBitstring(convert::decimal_from_str(n)?))
-    }
-
-    pub fn from_f64(n: f64) -> Self {
-        BigBitstring(convert::decimal_from_binary_float(n).expect("always fits"))
-    }
-
-    pub fn from_i64(n: i64) -> Self {
-        BigBitstring(convert::decimal_from_int(n).expect("always fits"))
-    }
-
-    pub fn as_le_bytes(&self) -> &[u8] {
-        // Even on big-endian platforms we always encode numbers in little-endian order
-        self.0.bytes()
-    }
-
-    pub fn is_sign_negative(&self) -> bool {
-        is_sign_negative(&self.0)
-    }
-
-    pub fn is_finite(&self) -> bool {
-        is_finite(&self.0)
-    }
-
-    pub fn is_infinite(&self) -> bool {
-        is_infinite(&self.0)
-    }
-
-    pub fn is_nan(&self) -> bool {
-        is_nan(&self.0)
-    }
-
-    pub fn is_quiet_nan(&self) -> bool {
-        is_quiet_nan(&self.0)
-    }
-
-    pub fn is_signaling_nan(&self) -> bool {
-        is_signaling_nan(&self.0)
-    }
-}
-
-#[cfg(feature = "arbitrary-precision")]
-impl fmt::Display for BigBitstring {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        convert::decimal_to_fmt(&self.0, f)
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -579,8 +255,8 @@ mod tests {
     #[test]
     fn decimal_roundtrip_i128() {
         for i in [0i128, 42i128, i128::MIN, i128::MAX] {
-            let d = Bitstring::from_i128(i);
-            let di = d.to_i128().unwrap();
+            let d = Bitstring::from(i);
+            let di = d.try_into().unwrap();
 
             assert_eq!(i, di);
         }

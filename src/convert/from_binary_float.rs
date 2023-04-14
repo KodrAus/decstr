@@ -2,6 +2,8 @@
 Encoding binary floating point to decimal.
 */
 
+use core::any::type_name;
+
 use crate::{
     binary::{
         decode_combination_finite,
@@ -26,10 +28,13 @@ use crate::{
         ParsedNanHeader,
         PreFormattedTextBuf,
     },
+    ConvertError,
     OverflowError,
 };
 
-pub(crate) fn decimal_to_binary_float<F: Float, D: BinaryBuf>(decimal: &D) -> Option<F> {
+pub(crate) fn decimal_to_binary_float<F: Float, D: BinaryBuf>(
+    decimal: &D,
+) -> Result<F, ConvertError> {
     if is_finite(decimal) {
         let (exp, msd) = decode_combination_finite(decimal);
 
@@ -41,28 +46,30 @@ pub(crate) fn decimal_to_binary_float<F: Float, D: BinaryBuf>(decimal: &D) -> Op
                 .into_iter()
                 .chain(trailing_significand.flatten()),
             exp,
-        )?;
+        )
+        .ok_or_else(|| ConvertError::would_overflow(type_name::<F>()))?;
 
         // If the parsed floating point is finite then return it
         if f.is_finite() {
-            Some(f)
+            Ok(f)
         }
         // If the parsed floating point is non-finite then it's probably
         // infinity, meaning it doesn't fit in the given format. In this
         // case we return `None` rather than infinity to signal overflow.
         else {
-            None
+            Err(ConvertError::would_overflow(type_name::<F>()))
         }
     } else if is_infinite(decimal) {
-        Some(F::infinity(is_sign_negative(decimal)))
+        Ok(F::infinity(is_sign_negative(decimal)))
     } else {
         debug_assert!(is_nan(decimal));
 
         let payload = decode_significand_trailing_declets(decimal);
 
-        let payload = F::NanPayload::try_from_ascii(false, payload.flatten())?;
+        let payload = F::NanPayload::try_from_ascii(false, payload.flatten())
+            .ok_or_else(|| ConvertError::would_overflow(type_name::<F>()))?;
 
-        Some(F::nan(
+        Ok(F::nan(
             is_sign_negative(decimal),
             is_signaling_nan(decimal),
             payload,

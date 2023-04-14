@@ -2,7 +2,10 @@
 Encode binary integers to decimal.
 */
 
-use core::iter;
+use core::{
+    any::type_name,
+    iter,
+};
 
 use crate::{
     binary::{
@@ -17,10 +20,11 @@ use crate::{
         FiniteParser,
         ParsedDecimal,
     },
+    ConvertError,
     OverflowError,
 };
 
-pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Option<I> {
+pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Result<I, ConvertError> {
     let (exp, msd) = decode_combination_finite(decimal);
 
     match exp.to_i32() {
@@ -33,6 +37,7 @@ pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Option<I>
                 .chain(trailing_significand.flatten());
 
             I::try_from_ascii(is_sign_negative(decimal), digits)
+                .ok_or_else(|| ConvertError::would_overflow(type_name::<I>()))
         }
         // ±123e1
         Some(exponent) if exponent > 0 => {
@@ -44,6 +49,7 @@ pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Option<I>
                 .chain(iter::repeat(b'0').take(exponent as usize));
 
             I::try_from_ascii(is_sign_negative(decimal), digits)
+                .ok_or_else(|| ConvertError::would_overflow(type_name::<I>()))
         }
         // ±1230e-1
         Some(exponent) if (exponent.abs() as usize) < decimal.precision_digits() => {
@@ -59,19 +65,20 @@ pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Option<I>
                 digits
                     .by_ref()
                     .take(decimal.precision_digits() - (exponent.abs() as usize)),
-            )?;
+            )
+            .ok_or_else(|| ConvertError::would_overflow(type_name::<I>()))?;
 
             // If the rest of the digits are zero then the number is an integer
             if digits.all(|d| d == b'0') {
-                Some(i)
+                Ok(i)
             }
             // If there are any non-zero digits then the number is a decimal
             else {
-                None
+                Err(ConvertError::non_integer(type_name::<I>()))
             }
         }
         // If the exponent is very large or small then it can't be represented as an integer
-        _ => None,
+        _ => Err(ConvertError::would_overflow(type_name::<I>())),
     }
 }
 

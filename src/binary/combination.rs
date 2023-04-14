@@ -1,10 +1,10 @@
 use crate::{
     binary::{
+        BinaryBuf,
         BinaryExponent,
         MostSignificantDigit,
     },
     num::Integer,
-    BinaryBuf,
 };
 use core::iter;
 

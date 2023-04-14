@@ -1,6 +1,6 @@
 use crate::{
+    binary::BinaryBuf,
     num::Integer,
-    BinaryBuf,
 };
 
 use core::{
@@ -30,6 +30,10 @@ pub trait BinaryExponent: Integer {
     fn bias<D: BinaryBuf>(&self, decimal: &D) -> Self;
 
     fn unbias<D: BinaryBuf>(&self, decimal: &D) -> Self;
+
+    fn emax<D: BinaryBuf>(decimal: &D) -> Self;
+
+    fn emin<D: BinaryBuf>(decimal: &D) -> Self;
 }
 
 /**
@@ -75,6 +79,16 @@ macro_rules! impl_binary_exponent {
                 #[must_use]
                 fn unbias<D: BinaryBuf>(&self, decimal: &D) -> Self {
                     sub_bias(decimal, *self)
+                }
+
+                #[must_use]
+                fn emax<D: BinaryBuf>(decimal: &D) -> Self {
+                    emax(decimal.storage_width_bits())
+                }
+
+                #[must_use]
+                fn emin<D: BinaryBuf>(decimal: &D) -> Self {
+                    emin(decimal.storage_width_bits())
                 }
             }
 
@@ -131,6 +145,13 @@ Calculate the maximum exponent that can be encoded by a decimal with a given bit
 pub(crate) fn emax<N: BinaryExponentMath>(storage_width_bits: usize) -> N {
     // emax = 3 * 2.pow(k / 16 + 3)
     N::from_i32(3) * N::pow2((storage_width_bits / 16 + 3) as u32)
+}
+
+/**
+Calculate the minimum exponent that can be encoded by a decimal with a given bit-width.
+*/
+pub(crate) fn emin<N: BinaryExponentMath>(storage_width_bits: usize) -> N {
+    N::from_i32(1) - emax(storage_width_bits)
 }
 
 /**

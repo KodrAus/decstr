@@ -73,6 +73,31 @@ pub fn encode_significand_trailing_digits<D: BinaryBuf, const N: usize>(
     }
 }
 
+pub fn encode_significand_trailing_digits_repeat<D: BinaryBuf>(
+    decimal: &mut D,
+    digit: u8,
+) -> MostSignificantDigit {
+    // The process here is basically the same as above, except instead
+    // of using a set of chunks, we fill the entire buffer with the same value
+    let max_digits = decimal.trailing_significand_digits();
+
+    debug_assert_eq!(0, max_digits % 3, "{}", max_digits);
+
+    let decimal = decimal.bytes_mut();
+    let mut digit_index = 0;
+    let mut bit_index = 0;
+
+    while digit_index < max_digits {
+        let bcd = encode_ascii_declet_to_bcd([digit, digit, digit]);
+
+        encode_bcd_declet_to_dpd(bcd, decimal, &mut bit_index);
+
+        digit_index += 3;
+    }
+
+    MostSignificantDigit::from_ascii(digit)
+}
+
 pub fn decode_significand_trailing_declets<'a, D: BinaryBuf>(
     decimal: &'a D,
 ) -> impl Iterator<Item = [u8; 3]> + 'a {
@@ -193,6 +218,7 @@ The most significant digit to encode into the combination field.
 
 The value is encoded as a regular binary number, not an ASCII digit.
 */
+#[derive(Clone, Copy)]
 pub struct MostSignificantDigit(u8);
 
 impl MostSignificantDigit {
@@ -904,5 +930,18 @@ mod tests {
             .collect::<String>();
 
         assert_eq!(digits, decoded);
+    }
+
+    #[test]
+    fn encode_decode_significand_trailing_digits_repeat() {
+        for digit in b'0'..=b'9' {
+            let mut decimal = Decimal64Buf([0; 8]);
+
+            encode_significand_trailing_digits_repeat(&mut decimal, digit);
+
+            assert!(decode_significand_trailing_declets(&decimal)
+                .flatten()
+                .all(|b| b == digit));
+        }
     }
 }

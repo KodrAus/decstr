@@ -8,6 +8,7 @@ use crate::{
 };
 
 #[repr(transparent)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Decimal32Buf(pub(crate) [u8; 4]);
 
 // Decimal32
@@ -54,6 +55,7 @@ impl BinaryBuf for Decimal32Buf {
 }
 
 #[repr(transparent)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Decimal64Buf(pub(crate) [u8; 8]);
 
 // Decimal64
@@ -100,6 +102,7 @@ impl BinaryBuf for Decimal64Buf {
 }
 
 #[repr(transparent)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Decimal128Buf(pub(crate) [u8; 16]);
 
 // Decimal128
