@@ -920,7 +920,7 @@ mod tests {
         // NOTE: This is exactly the number of digits that fills a 64bit decimal's trailing significand
         let digits = "129054729387659";
 
-        let mut decimal = Decimal64Buf([0; 8]);
+        let mut decimal = Decimal64Buf::ZERO;
 
         encode_significand_trailing_digits(&mut decimal, [digits.as_bytes()]);
 
@@ -935,7 +935,7 @@ mod tests {
     #[test]
     fn encode_decode_significand_trailing_digits_repeat() {
         for digit in b'0'..=b'9' {
-            let mut decimal = Decimal64Buf([0; 8]);
+            let mut decimal = Decimal64Buf::ZERO;
 
             encode_significand_trailing_digits_repeat(&mut decimal, digit);
 

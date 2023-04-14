@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn encode_byte_order() {
-        let mut buf = Decimal128Buf([0; 16]);
+        let mut buf = Decimal128Buf::ZERO;
 
         let is_negative = true;
         let exp = 2;
@@ -68,39 +68,39 @@ mod tests {
 
     #[test]
     fn encode_min_max_32() {
-        encode_max(&mut Decimal32Buf([0; 4]), false);
-        encode_max(&mut Decimal32Buf([0; 4]), true);
+        encode_max(&mut Decimal32Buf::ZERO, false);
+        encode_max(&mut Decimal32Buf::ZERO, true);
 
-        encode_min(&mut Decimal32Buf([0; 4]), false);
-        encode_min(&mut Decimal32Buf([0; 4]), true);
+        encode_min(&mut Decimal32Buf::ZERO, false);
+        encode_min(&mut Decimal32Buf::ZERO, true);
     }
 
     #[test]
     fn encode_min_max_64() {
-        encode_max(&mut Decimal64Buf([0; 8]), false);
-        encode_max(&mut Decimal64Buf([0; 8]), true);
+        encode_max(&mut Decimal64Buf::ZERO, false);
+        encode_max(&mut Decimal64Buf::ZERO, true);
 
-        encode_min(&mut Decimal64Buf([0; 8]), false);
-        encode_min(&mut Decimal64Buf([0; 8]), true);
+        encode_min(&mut Decimal64Buf::ZERO, false);
+        encode_min(&mut Decimal64Buf::ZERO, true);
     }
 
     #[test]
     fn encode_min_max_128() {
-        encode_max(&mut Decimal128Buf([0; 16]), false);
-        encode_max(&mut Decimal128Buf([0; 16]), true);
+        encode_max(&mut Decimal128Buf::ZERO, false);
+        encode_max(&mut Decimal128Buf::ZERO, true);
 
-        encode_min(&mut Decimal128Buf([0; 16]), false);
-        encode_min(&mut Decimal128Buf([0; 16]), true);
+        encode_min(&mut Decimal128Buf::ZERO, false);
+        encode_min(&mut Decimal128Buf::ZERO, true);
     }
 
     #[test]
     #[allow(const_item_mutation)]
     fn encode_min_max_dynamic() {
-        encode_max(&mut DynamicBinaryBuf::<20>::EMPTY, false);
-        encode_max(&mut DynamicBinaryBuf::<20>::EMPTY, true);
+        encode_max(&mut DynamicBinaryBuf::<20>::ZERO, false);
+        encode_max(&mut DynamicBinaryBuf::<20>::ZERO, true);
 
-        encode_min(&mut DynamicBinaryBuf::<20>::EMPTY, false);
-        encode_min(&mut DynamicBinaryBuf::<20>::EMPTY, true);
+        encode_min(&mut DynamicBinaryBuf::<20>::ZERO, false);
+        encode_min(&mut DynamicBinaryBuf::<20>::ZERO, true);
     }
 
     #[test]

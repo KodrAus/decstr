@@ -11,6 +11,10 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Decimal32Buf(pub(crate) [u8; 4]);
 
+impl Decimal32Buf {
+    pub(crate) const ZERO: Self = Decimal32Buf([0; 4]);
+}
+
 // Decimal32
 impl BinaryBuf for Decimal32Buf {
     type Exponent = i32;
@@ -58,6 +62,10 @@ impl BinaryBuf for Decimal32Buf {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Decimal64Buf(pub(crate) [u8; 8]);
 
+impl Decimal64Buf {
+    pub(crate) const ZERO: Self = Decimal64Buf([0; 8]);
+}
+
 // Decimal64
 impl BinaryBuf for Decimal64Buf {
     type Exponent = i32;
@@ -104,6 +112,10 @@ impl BinaryBuf for Decimal64Buf {
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Decimal128Buf(pub(crate) [u8; 16]);
+
+impl Decimal128Buf {
+    pub(crate) const ZERO: Self = Decimal128Buf([0; 16]);
+}
 
 // Decimal128
 impl BinaryBuf for Decimal128Buf {

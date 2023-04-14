@@ -32,7 +32,7 @@ impl Bitstring32 {
     }
 
     pub fn max() -> Self {
-        let mut buf = Decimal32Buf([0; 4]);
+        let mut buf = Decimal32Buf::ZERO;
 
         encode_max(&mut buf, false);
 
@@ -40,7 +40,7 @@ impl Bitstring32 {
     }
 
     pub fn min() -> Self {
-        let mut buf = Decimal32Buf([0; 4]);
+        let mut buf = Decimal32Buf::ZERO;
 
         encode_max(&mut buf, true);
 
@@ -48,7 +48,7 @@ impl Bitstring32 {
     }
 
     pub fn min_positive() -> Self {
-        let mut buf = Decimal32Buf([0; 4]);
+        let mut buf = Decimal32Buf::ZERO;
 
         encode_min(&mut buf, false);
 

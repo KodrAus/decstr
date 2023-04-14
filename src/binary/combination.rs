@@ -529,26 +529,26 @@ mod tests {
 
     #[test]
     fn encode_decode_combination_decimal32_all() {
-        encode_decode_case(DynamicBinaryBuf::<4>::EMPTY);
+        encode_decode_case(DynamicBinaryBuf::<4>::ZERO);
     }
 
     #[test]
     fn encode_decode_combination_decimal64_all() {
-        encode_decode_case(DynamicBinaryBuf::<8>::EMPTY);
+        encode_decode_case(DynamicBinaryBuf::<8>::ZERO);
     }
 
     #[test]
     fn encode_decode_combination_decimal96_all() {
-        encode_decode_case(DynamicBinaryBuf::<12>::EMPTY);
+        encode_decode_case(DynamicBinaryBuf::<12>::ZERO);
     }
 
     #[test]
     fn encode_decode_combination_decimal128_all() {
-        encode_decode_case(DynamicBinaryBuf::<16>::EMPTY);
+        encode_decode_case(DynamicBinaryBuf::<16>::ZERO);
     }
 
     #[test]
     fn encode_decode_combination_decimal160_all() {
-        encode_decode_case(DynamicBinaryBuf::<20>::EMPTY);
+        encode_decode_case(DynamicBinaryBuf::<20>::ZERO);
     }
 }

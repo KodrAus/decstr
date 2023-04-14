@@ -2,8 +2,6 @@ use core::fmt;
 
 use crate::{
     binary::{
-        encode_max,
-        encode_min,
         BinaryBuf,
         DynamicBinaryBuf,
     },
@@ -12,6 +10,9 @@ use crate::{
     Error,
     OverflowError,
 };
+
+#[cfg(test)]
+use crate::binary::encode_max;
 
 /**
 A dynamically sized decimal number with enough precision to fit any Rust primitive number.
@@ -45,26 +46,20 @@ impl Bitstring {
         Self::from(0u8)
     }
 
-    pub fn max() -> Self {
-        let mut buf = DynamicBinaryBuf::EMPTY;
+    #[cfg(test)]
+    fn max() -> Self {
+        let mut buf = DynamicBinaryBuf::ZERO;
 
         encode_max(&mut buf, false);
 
         Self(buf)
     }
 
-    pub fn min() -> Self {
-        let mut buf = DynamicBinaryBuf::EMPTY;
+    #[cfg(test)]
+    fn min() -> Self {
+        let mut buf = DynamicBinaryBuf::ZERO;
 
         encode_max(&mut buf, true);
-
-        Self(buf)
-    }
-
-    pub fn min_positive() -> Self {
-        let mut buf = DynamicBinaryBuf::EMPTY;
-
-        encode_min(&mut buf, false);
 
         Self(buf)
     }
