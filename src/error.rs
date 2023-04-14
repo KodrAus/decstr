@@ -53,9 +53,17 @@ pub struct ParseError {
 enum ParseErrorKind {
     Char { got: u8 },
     End,
+    BufferTooSmall,
 }
 
 impl ParseError {
+    pub(crate) fn buffer_too_small() -> Self {
+        ParseError {
+            expected: "",
+            kind: ParseErrorKind::BufferTooSmall,
+        }
+    }
+
     pub(crate) fn unexpected_char(got: u8, expected: &'static str) -> Self {
         ParseError {
             expected,
@@ -79,6 +87,9 @@ impl fmt::Display for ParseError {
             }
             ParseErrorKind::End => {
                 write!(f, "unexpected end of input")?;
+            }
+            ParseErrorKind::BufferTooSmall => {
+                write!(f, "the buffer is too small")?;
             }
         };
 

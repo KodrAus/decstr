@@ -77,7 +77,7 @@ impl<B: TextWriter> NanParser<B> {
     pub fn parse_ascii(&mut self, ascii: &[u8]) -> Result<(), ParseError> {
         if let Some(remaining_capacity) = self.buf.remaining_capacity() {
             if remaining_capacity < ascii.len() {
-                unimplemented!("return an appropriate `ParseError` kind");
+                return Err(ParseError::buffer_too_small());
             }
         }
 

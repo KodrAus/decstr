@@ -479,7 +479,180 @@ mod tests {
 
     #[test]
     fn parse_finite_valid() {
-        todo!()
+        for (input, expected) in &[
+            (
+                "0",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("0"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..1,
+                        decimal_point: None,
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "-0",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("-0"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: true,
+                        significand_range: 1..2,
+                        decimal_point: None,
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "+0",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("+0"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 1..2,
+                        decimal_point: None,
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "00",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("00"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..2,
+                        decimal_point: None,
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "0.0",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("0.0"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..3,
+                        decimal_point: Some(ParsedDecimalPoint {
+                            decimal_point_range: 1..2,
+                        }),
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "0.00",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("0.00"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..4,
+                        decimal_point: Some(ParsedDecimalPoint {
+                            decimal_point_range: 1..2,
+                        }),
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "123",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("123"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..3,
+                        decimal_point: None,
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "123.456",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("123.456"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..7,
+                        decimal_point: Some(ParsedDecimalPoint {
+                            decimal_point_range: 3..4,
+                        }),
+                    },
+                    finite_exponent: None,
+                },
+            ),
+            (
+                "123e456",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("123e456"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..3,
+                        decimal_point: None,
+                    },
+                    finite_exponent: Some(ParsedExponent {
+                        exponent_is_negative: false,
+                        exponent_range: 4..7,
+                    }),
+                },
+            ),
+            (
+                "123.456e789",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("123.456e789"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..7,
+                        decimal_point: Some(ParsedDecimalPoint {
+                            decimal_point_range: 3..4,
+                        }),
+                    },
+                    finite_exponent: Some(ParsedExponent {
+                        exponent_is_negative: false,
+                        exponent_range: 8..11,
+                    }),
+                },
+            ),
+            (
+                "123e-456",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("123e-456"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..3,
+                        decimal_point: None,
+                    },
+                    finite_exponent: Some(ParsedExponent {
+                        exponent_is_negative: true,
+                        exponent_range: 5..8,
+                    }),
+                },
+            ),
+            (
+                "123.456e-789",
+                ParsedFinite {
+                    finite_buf: PreFormattedTextBuf::at_end("123.456e-789"),
+                    finite_significand: ParsedSignificand {
+                        significand_is_negative: false,
+                        significand_range: 0..7,
+                        decimal_point: Some(ParsedDecimalPoint {
+                            decimal_point_range: 3..4,
+                        }),
+                    },
+                    finite_exponent: Some(ParsedExponent {
+                        exponent_is_negative: true,
+                        exponent_range: 9..12,
+                    }),
+                },
+            ),
+        ] {
+            let mut parser = FiniteParser::begin(PreFormattedTextBuf::new(input));
+            parser.write_str(input).expect("failed to parse");
+            let parsed = parser.end().expect("failed to parse");
+
+            assert_eq!(expected, &parsed, "{}", input);
+        }
     }
 
     #[test]
@@ -685,12 +858,41 @@ mod tests {
 
     #[test]
     fn parse_fails_on_buffer_too_small() {
-        todo!()
+        let expected_err = "the buffer is too small";
+
+        let mut buf = DecimalParser::begin(FixedSizeTextBuf::<1>::default());
+        let err = buf.parse_ascii(b"123").unwrap_err();
+        assert_eq!(expected_err, &err.to_string());
+
+        let mut buf = FiniteParser::begin(FixedSizeTextBuf::<1>::default());
+        let err = buf.parse_ascii(b"123").unwrap_err();
+        assert_eq!(expected_err, &err.to_string());
+
+        let mut buf = InfinityParser::begin(FixedSizeTextBuf::<1>::default());
+        let err = buf.parse_ascii(b"inf").unwrap_err();
+        assert_eq!(expected_err, &err.to_string());
+
+        let mut buf = NanParser::begin(FixedSizeTextBuf::<1>::default());
+        let err = buf.parse_ascii(b"nan").unwrap_err();
+        assert_eq!(expected_err, &err.to_string());
+    }
+
+    #[test]
+    fn parse_finite_invalid() {
+        for (input, expected_err) in &[("", "unexpected end of input, expected a sign or digit")] {
+            let actual_err = FiniteParser::parse_str(input).unwrap_err();
+
+            assert_eq!(expected_err, &actual_err.to_string(), "{}", input);
+        }
     }
 
     #[test]
     fn parse_invalid() {
         for (input, expected_err) in &[
+            (
+                "",
+                "unexpected end of input, expected a finite number, infinity, or NaN",
+            ),
             (
                 "-",
                 "unexpected end of input, expected a finite number, infinity, or NaN",

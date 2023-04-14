@@ -54,6 +54,12 @@ impl<B: TextWriter> InfinityParser<B> {
     }
 
     pub fn parse_ascii(&mut self, ascii: &[u8]) -> Result<(), ParseError> {
+        if let Some(remaining_capacity) = self.buf.remaining_capacity() {
+            if remaining_capacity < ascii.len() {
+                return Err(ParseError::buffer_too_small());
+            }
+        }
+
         for b in ascii {
             match b {
                 // Mark the infinity as negative
