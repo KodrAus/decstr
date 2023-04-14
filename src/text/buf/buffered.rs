@@ -92,6 +92,10 @@ impl<const N: usize> TextWriter for FixedSizeTextBuf<N> {
         significand.significand_range.end += 1;
     }
 
+    fn significand_is_positive(&mut self, significand: &mut ParsedSignificand) {
+        significand.significand_is_negative = false;
+    }
+
     fn begin_exponent(&mut self) -> ParsedExponent {
         self.buf[self.len] = b'e';
 
@@ -119,5 +123,9 @@ impl<const N: usize> TextWriter for FixedSizeTextBuf<N> {
         exponent.exponent_is_negative = true;
         exponent.exponent_range.start += 1;
         exponent.exponent_range.end += 1;
+    }
+
+    fn exponent_is_positive(&mut self, exponent: &mut ParsedExponent) {
+        exponent.exponent_is_negative = false;
     }
 }

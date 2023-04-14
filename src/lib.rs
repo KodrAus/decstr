@@ -60,6 +60,7 @@ mod error;
 
 mod binary;
 mod convert;
+mod num;
 mod text;
 
 use crate::{
@@ -636,7 +637,7 @@ mod tests {
     }
 
     #[test]
-    fn decimal_to_f64_overflow() {
+    fn err_decimal_to_f64_overflow() {
         let d = Bitstring::try_parse_str("1e4513").unwrap();
 
         assert!(d.to_f64().is_none());
@@ -717,7 +718,7 @@ mod tests {
     }
 
     #[test]
-    fn decimal_small_significand_large_exponent() {
+    fn decimal_size_small_significand_large_exponent() {
         for i in ["1e6100", "1e-6100"] {
             // We only have a single digit, but the exponent is too large for anything smaller than 128bit
             let d = Bitstring::try_parse_str(i).expect("failed to parse decimal");
@@ -727,14 +728,14 @@ mod tests {
     }
 
     #[test]
-    fn decimal_small_significand() {
+    fn decimal_size_small_significand() {
         let d = Bitstring::try_parse_str("1").expect("failed to parse decimal");
 
         assert_eq!(32, d.as_le_bytes().len() * 8);
     }
 
     #[test]
-    fn err_decimal_exponent_overflow_exponent() {
+    fn err_decimal_overflow_exponent() {
         for i in ["1e2147483648", "1e1073741823"] {
             assert!(Bitstring::try_parse_str(i).is_err());
             assert!(Bitstring::try_parse(format_args!("{}", i)).is_err());
@@ -750,6 +751,12 @@ mod tests {
             assert!(Bitstring::try_parse_str(i).is_err());
             assert!(Bitstring::try_parse(format_args!("{}", i)).is_err());
         }
+    }
+
+    #[test]
+    fn err_decimal_from_invalid_byte_count() {
+        // non-32bit multiple, and too many bytes
+        todo!()
     }
 
     #[test]

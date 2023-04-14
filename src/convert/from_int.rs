@@ -10,9 +10,9 @@ use crate::{
         decode_significand_trailing_declets,
         is_sign_negative,
         BinaryBuf,
-        BinaryInteger,
     },
     convert::decimal_from_parsed,
+    num::Integer,
     text::{
         FiniteParser,
         ParsedDecimal,
@@ -20,7 +20,7 @@ use crate::{
     OverflowError,
 };
 
-pub(crate) fn decimal_to_int<D: BinaryBuf, I: BinaryInteger>(decimal: &D) -> Option<I> {
+pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Option<I> {
     let (exp, msd) = decode_combination_finite(decimal);
 
     match exp.to_i32() {

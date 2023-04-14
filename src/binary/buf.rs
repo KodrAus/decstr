@@ -4,9 +4,9 @@ use crate::{
             BinaryExponent,
             BinaryMath,
         },
-        num::BinaryInteger,
         significand::precision_digits,
     },
+    num::Integer,
     OverflowError,
 };
 use core::cmp;

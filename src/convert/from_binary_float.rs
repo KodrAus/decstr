@@ -12,10 +12,12 @@ use crate::{
         is_sign_negative,
         is_signaling_nan,
         BinaryBuf,
-        BinaryFloat,
-        BinaryInteger,
     },
     convert::decimal_from_parsed,
+    num::{
+        Float,
+        Integer,
+    },
     text::{
         FiniteParser,
         ParsedDecimal,
@@ -27,7 +29,7 @@ use crate::{
     OverflowError,
 };
 
-pub(crate) fn decimal_to_binary_float<F: BinaryFloat, D: BinaryBuf>(decimal: &D) -> Option<F> {
+pub(crate) fn decimal_to_binary_float<F: Float, D: BinaryBuf>(decimal: &D) -> Option<F> {
     if is_finite(decimal) {
         let (exp, msd) = decode_combination_finite(decimal);
 
@@ -68,7 +70,7 @@ pub(crate) fn decimal_to_binary_float<F: BinaryFloat, D: BinaryBuf>(decimal: &D)
     }
 }
 
-pub(crate) fn decimal_from_binary_float<D: BinaryBuf, F: BinaryFloat + ryu::Float>(
+pub(crate) fn decimal_from_binary_float<D: BinaryBuf, F: Float + ryu::Float>(
     float: F,
 ) -> Result<D, OverflowError> {
     if float.is_finite() {

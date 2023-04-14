@@ -84,6 +84,14 @@ impl<'a> TextWriter for PreFormattedTextBuf<'a> {
         significand.significand_range.end += 1;
     }
 
+    fn significand_is_positive(&mut self, significand: &mut ParsedSignificand) {
+        self.index += 1;
+
+        significand.significand_is_negative = false;
+        significand.significand_range.start += 1;
+        significand.significand_range.end += 1;
+    }
+
     fn begin_exponent(&mut self) -> ParsedExponent {
         self.index += 1;
 
@@ -103,6 +111,14 @@ impl<'a> TextWriter for PreFormattedTextBuf<'a> {
         self.index += 1;
 
         exponent.exponent_is_negative = true;
+        exponent.exponent_range.start += 1;
+        exponent.exponent_range.end += 1;
+    }
+
+    fn exponent_is_positive(&mut self, exponent: &mut ParsedExponent) {
+        self.index += 1;
+
+        exponent.exponent_is_negative = false;
         exponent.exponent_range.start += 1;
         exponent.exponent_range.end += 1;
     }

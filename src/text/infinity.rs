@@ -5,9 +5,12 @@ use crate::{
     },
     ParseError,
 };
-use core::fmt::{
-    self,
-    Write,
+use core::{
+    fmt::{
+        self,
+        Write,
+    },
+    str,
 };
 
 #[derive(Debug)]
@@ -38,6 +41,10 @@ impl<B: TextWriter> InfinityParser<B> {
         self.buf.advance_significand(b);
     }
 
+    pub fn infinity_is_positive(&mut self) {
+        self.infinity.is_infinity_negative = false;
+    }
+
     pub fn infinity_is_negative(&mut self) {
         self.infinity.is_infinity_negative = true;
     }
@@ -57,7 +64,13 @@ impl<B: TextWriter> InfinityParser<B> {
                     self.expecting = &self.expecting[1..];
                     self.buf.advance_significand(*b);
                 }
-                c => return Err(ParseError::unexpected_char(*c, &[], "")),
+                c => {
+                    return Err(ParseError::unexpected_char(
+                        *c,
+                        str::from_utf8(&self.expecting[0..1]).unwrap(),
+                        "",
+                    ))
+                }
             }
         }
 
@@ -73,7 +86,10 @@ impl<B: TextWriter> InfinityParser<B> {
         match self.expecting {
             // If we just encounter `inf` then we still have a valid infinity
             b"" | b"inity" => Ok(self.infinity),
-            _ => Err(ParseError::unexpected_end(&self.expecting[0..1], "")),
+            _ => Err(ParseError::unexpected_end(
+                str::from_utf8(&self.expecting[0..1]).unwrap(),
+                "",
+            )),
         }
     }
 

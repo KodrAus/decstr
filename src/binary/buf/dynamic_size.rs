@@ -8,8 +8,8 @@ use crate::{
         exponent::BinaryExponent,
         try_with_at_least_precision,
         BinaryBuf,
-        BinaryInteger,
     },
+    num::Integer,
     OverflowError,
 };
 
@@ -76,7 +76,7 @@ impl<const N: usize> BinaryBuf for DynamicBinaryBuf<N> {
     }
 }
 
-impl BinaryInteger for DynamicBinaryExponent {
+impl Integer for DynamicBinaryExponent {
     type Bytes = DynamicBinaryExponentBytes;
 
     fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self> {

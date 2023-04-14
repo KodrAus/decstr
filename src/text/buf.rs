@@ -39,8 +39,10 @@ pub trait TextWriter {
     fn push_significand_digit(&mut self, significand: &mut ParsedSignificand, digit: u8);
     fn push_significand_decimal_point(&mut self, significand: &mut ParsedSignificand);
     fn significand_is_negative(&mut self, significand: &mut ParsedSignificand);
+    fn significand_is_positive(&mut self, significand: &mut ParsedSignificand);
 
     fn begin_exponent(&mut self) -> ParsedExponent;
     fn push_exponent_digit(&mut self, exponent: &mut ParsedExponent, digit: u8);
     fn exponent_is_negative(&mut self, exponent: &mut ParsedExponent);
+    fn exponent_is_positive(&mut self, exponent: &mut ParsedExponent);
 }

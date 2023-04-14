@@ -22,6 +22,9 @@ pub struct FiniteParser<B> {
     error: Option<ParseError>,
     significand: ParsedSignificand,
     exponent: Option<ParsedExponent>,
+    has_sign: bool,
+    has_decimal: bool,
+    has_digits: bool,
 }
 
 impl<'a> FiniteParser<PreFormattedTextBuf<'a>> {
@@ -41,24 +44,43 @@ impl<B: TextWriter> FiniteParser<B> {
             exponent: None,
             buf,
             error: None,
+            has_sign: false,
+            has_decimal: false,
+            has_digits: false,
         }
     }
 
     pub fn push_significand_digit(&mut self, digit: u8) {
+        self.has_digits = true;
+
         self.buf
             .push_significand_digit(&mut self.significand, digit)
     }
 
     pub fn significand_is_negative(&mut self) {
+        self.has_sign = true;
+
         self.buf.significand_is_negative(&mut self.significand)
     }
 
+    pub fn significand_is_positive(&mut self) {
+        self.has_sign = true;
+
+        self.buf.significand_is_positive(&mut self.significand)
+    }
+
     pub fn push_significand_decimal_point(&mut self) {
+        self.has_decimal = true;
+        self.has_digits = false;
+
         self.buf
             .push_significand_decimal_point(&mut self.significand)
     }
 
     pub fn begin_exponent(&mut self) {
+        self.has_sign = false;
+        self.has_digits = false;
+
         self.exponent = Some(self.buf.begin_exponent());
     }
 
@@ -92,23 +114,27 @@ impl<B: TextWriter> FiniteParser<B> {
                         self.push_significand_digit(ascii[0]);
                     }
                     // Mark the significand as negative
-                    b'-' => {
+                    b'-' if !self.has_sign && !self.has_digits => {
                         self.significand_is_negative();
                     }
                     // Mark the decimal point in the significand
-                    b'.' => {
+                    b'.' if !self.has_decimal => {
                         self.push_significand_decimal_point();
                     }
                     // Begin the exponent
                     // This will break out of this loop and start parsing the digits
                     // of the exponent instead
-                    b'e' | b'E' => {
+                    b'e' | b'E' if self.has_digits => {
                         self.begin_exponent();
 
                         ascii = &ascii[1..];
                         break;
                     }
-                    c => return Err(ParseError::unexpected_char(c, &[], "")),
+                    // Uncommon: mark the significand as positive
+                    b'+' if !self.has_sign && !self.has_digits => {
+                        self.significand_is_positive();
+                    }
+                    c => return Err(ParseError::unexpected_char(c, "any digit", "")),
                 }
 
                 ascii = &ascii[1..];
@@ -123,13 +149,20 @@ impl<B: TextWriter> FiniteParser<B> {
                 match ascii[0] {
                     // Push a digit to the exponent
                     b'0'..=b'9' => {
+                        self.has_digits = true;
                         self.buf.push_exponent_digit(exponent, ascii[0]);
                     }
                     // Mark the exponent as negative
-                    b'-' => {
+                    b'-' if !self.has_sign && !self.has_digits => {
+                        self.has_sign = true;
                         self.buf.exponent_is_negative(exponent);
                     }
-                    c => return Err(ParseError::unexpected_char(c, &[], "")),
+                    // Uncommon: mark the exponent as positive
+                    b'+' if !self.has_sign && !self.has_digits => {
+                        self.has_sign = true;
+                        self.buf.exponent_is_positive(exponent);
+                    }
+                    c => return Err(ParseError::unexpected_char(c, "any digit", "")),
                 }
 
                 ascii = &ascii[1..];
@@ -146,6 +179,17 @@ impl<B: TextWriter> FiniteParser<B> {
             self.error.is_none(),
             "attempt to complete a parser with an error context"
         );
+
+        if !self.has_digits {
+            return Err(ParseError::unexpected_end(
+                if !self.has_sign {
+                    "a sign or digit"
+                } else {
+                    "any digit"
+                },
+                "",
+            ));
+        }
 
         Ok(ParsedFinite {
             finite_buf: self.buf,

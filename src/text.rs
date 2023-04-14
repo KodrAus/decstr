@@ -221,9 +221,24 @@ impl<B: TextWriter> DecimalParser<B> {
                     ref mut buf,
                     ..
                 } => match ascii[0] {
+                    // Finite
+                    b'0'..=b'9' => {
+                        let mut finite = FiniteParser::begin(buf.take().expect("missing buffer"));
+
+                        match is_negative {
+                            Some(false) => finite.significand_is_positive(),
+                            Some(true) => finite.significand_is_negative(),
+                            _ => (),
+                        }
+
+                        finite.push_significand_digit(ascii[0]);
+
+                        self.0 = DecimalParserInner::Finite(finite);
+                    }
                     // A `-` sign doesn't tell us whether the number is finite or not
                     // We stash it away until we know for sure
                     b'-' if is_negative.is_none() => *is_negative = Some(true),
+                    b'+' if is_negative.is_none() => *is_negative = Some(false),
                     // Signaling NaN
                     b's' | b'S' => {
                         let mut nan = NanParser::begin(buf.take().expect("missing buffer"));
@@ -240,8 +255,10 @@ impl<B: TextWriter> DecimalParser<B> {
                     b'n' | b'N' => {
                         let mut nan = NanParser::begin(buf.take().expect("missing buffer"));
 
-                        if let Some(true) = is_negative {
-                            nan.nan_is_negative(b'-');
+                        match is_negative {
+                            Some(false) => nan.nan_is_positive(b'+'),
+                            Some(true) => nan.nan_is_negative(b'-'),
+                            _ => (),
                         }
 
                         nan.nan_is_quiet(ascii[0]);
@@ -252,27 +269,17 @@ impl<B: TextWriter> DecimalParser<B> {
                     b'i' | b'I' => {
                         let mut inf = InfinityParser::begin(buf.take().expect("missing buffer"));
 
-                        if let Some(true) = is_negative {
-                            inf.infinity_is_negative();
+                        match is_negative {
+                            Some(false) => inf.infinity_is_positive(),
+                            Some(true) => inf.infinity_is_negative(),
+                            _ => (),
                         }
 
                         inf.advance(ascii[0]);
 
                         self.0 = DecimalParserInner::Infinity(inf)
                     }
-                    // Finite
-                    b'0'..=b'9' => {
-                        let mut finite = FiniteParser::begin(buf.take().expect("missing buffer"));
-
-                        if let Some(true) = is_negative {
-                            finite.significand_is_negative();
-                        }
-
-                        finite.push_significand_digit(ascii[0]);
-
-                        self.0 = DecimalParserInner::Finite(finite);
-                    }
-                    c => return Err(ParseError::unexpected_char(c, &[], "")),
+                    c => return Err(ParseError::unexpected_char(c, "", "")),
                 },
                 // If we're parsing infinity then forward the rest of the input to it
                 DecimalParserInner::Infinity(ref mut infinity) => {
@@ -295,7 +302,7 @@ impl<B: TextWriter> DecimalParser<B> {
             DecimalParserInner::Finite(finite) => Ok(ParsedDecimal::Finite(finite.end()?)),
             DecimalParserInner::Infinity(infinity) => Ok(ParsedDecimal::Infinity(infinity.end()?)),
             DecimalParserInner::Nan(nan) => Ok(ParsedDecimal::Nan(nan.end()?)),
-            DecimalParserInner::AtStart { .. } => Err(ParseError::unexpected_end(&[], "")),
+            DecimalParserInner::AtStart { .. } => Err(ParseError::unexpected_end("", "")),
         }
     }
 
@@ -444,6 +451,11 @@ mod tests {
     }
 
     #[test]
+    fn parse_finite_valid() {
+        todo!()
+    }
+
+    #[test]
     fn parse_inf_valid() {
         for (input, expected) in &[
             (
@@ -459,6 +471,12 @@ mod tests {
                 },
             ),
             (
+                "+inf",
+                ParsedInfinity {
+                    is_infinity_negative: false,
+                },
+            ),
+            (
                 "infinity",
                 ParsedInfinity {
                     is_infinity_negative: false,
@@ -471,6 +489,12 @@ mod tests {
                 },
             ),
             (
+                "+infinity",
+                ParsedInfinity {
+                    is_infinity_negative: false,
+                },
+            ),
+            (
                 "INF",
                 ParsedInfinity {
                     is_infinity_negative: false,
@@ -480,6 +504,12 @@ mod tests {
                 "-INf",
                 ParsedInfinity {
                     is_infinity_negative: true,
+                },
+            ),
+            (
+                "+INf",
+                ParsedInfinity {
+                    is_infinity_negative: false,
                 },
             ),
             (
@@ -523,6 +553,17 @@ mod tests {
                 },
             ),
             (
+                "+nan",
+                ParsedNan {
+                    nan_buf: PreFormattedTextBuf::at_end("+nan"),
+                    nan_header: ParsedNanHeader {
+                        is_nan_signaling: false,
+                        is_nan_negative: false,
+                    },
+                    nan_payload: None,
+                },
+            ),
+            (
                 "snan",
                 ParsedNan {
                     nan_buf: PreFormattedTextBuf::at_end("snan"),
@@ -540,6 +581,17 @@ mod tests {
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: true,
+                    },
+                    nan_payload: None,
+                },
+            ),
+            (
+                "+snan",
+                ParsedNan {
+                    nan_buf: PreFormattedTextBuf::at_end("+snan"),
+                    nan_header: ParsedNanHeader {
+                        is_nan_signaling: true,
+                        is_nan_negative: false,
                     },
                     nan_payload: None,
                 },
@@ -601,6 +653,22 @@ mod tests {
             let nan = parser.end().expect("failed to parse");
 
             assert_eq!(expected, &nan, "{}", input);
+        }
+    }
+
+    #[test]
+    fn parse_invalid() {
+        for (input, expected_err) in &[
+            ("-", "unexpected end of input"),
+            ("+", "unexpected end of input"),
+            ("1e", "unexpected end of input, expected a sign or digit"),
+            ("1e-", "unexpected end of input, expected any digit"),
+            ("1e+", "unexpected end of input, expected any digit"),
+            ("in", "unexpected end of input, expected f"),
+        ] {
+            let actual_err = DecimalParser::parse_str(input).unwrap_err();
+
+            assert_eq!(expected_err, &actual_err.to_string(), "{}", input);
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    binary::BinaryInteger,
+    num::Integer,
     BinaryBuf,
 };
 
@@ -16,7 +16,7 @@ use core::{
 /**
 The high-level operators needed to work with binary exponents.
 */
-pub trait BinaryExponent: BinaryInteger {
+pub trait BinaryExponent: Integer {
     /**
     Account for digits on the integral side of the decimal point by raising the exponent.
     */
@@ -40,7 +40,7 @@ as a binary integer. The width of these exponents scales much more slowly than t
 decimal itself, so you can get quite far without needing arbitrary-precision integers for them.
 */
 pub(crate) trait BinaryMath:
-    BinaryInteger
+    Integer
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>

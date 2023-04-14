@@ -1,7 +1,7 @@
 #![feature(test)]
 extern crate test;
 
-use sval_number::Bitstring;
+use decstr::Bitstring;
 
 fn finite_cases() -> &'static [&'static str] {
     &[

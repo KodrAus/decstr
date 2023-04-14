@@ -9,14 +9,12 @@ a single byte. These buffers can be persisted or sent over networks to other pro
 mod buf;
 mod combination;
 mod exponent;
-mod num;
 mod significand;
 
 pub use self::{
     buf::*,
     combination::*,
     exponent::*,
-    num::*,
     significand::*,
 };
 
@@ -40,5 +38,11 @@ mod tests {
             buf.0,
             [207, 91, 57, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 8, 162]
         );
+    }
+
+    #[test]
+    fn decode_invalid() {
+        // Ensure we don't panic reading with invalid input
+        todo!()
     }
 }

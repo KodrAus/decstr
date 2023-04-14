@@ -14,7 +14,7 @@ use crate::text::{
 /**
 Generic binary integers.
 */
-pub trait BinaryInteger {
+pub trait Integer {
     type Bytes: Index<usize, Output = u8>;
 
     fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self>
@@ -47,7 +47,7 @@ pub trait BinaryInteger {
 
 pub struct AsDisplay<T>(T);
 
-impl<'a, T: BinaryInteger> fmt::Display for AsDisplay<&'a T> {
+impl<'a, T: Integer> fmt::Display for AsDisplay<&'a T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.0.to_fmt(f)
     }
@@ -56,11 +56,11 @@ impl<'a, T: BinaryInteger> fmt::Display for AsDisplay<&'a T> {
 /**
 Generic binary floating points.
 */
-pub(crate) trait BinaryFloat {
+pub(crate) trait Float {
     type TextWriter: TextBuf + TextWriter + Default;
-    type NanPayload: BinaryInteger;
+    type NanPayload: Integer;
 
-    fn try_finite_from_ascii<I: Iterator<Item = u8>, E: BinaryInteger>(
+    fn try_finite_from_ascii<I: Iterator<Item = u8>, E: Integer>(
         is_negative: bool,
         ascii: I,
         exponent: E,
@@ -86,7 +86,7 @@ pub(crate) trait BinaryFloat {
 macro_rules! impl_binary_integer {
     ($(($i:ty, $bytes:ty)),*) => {
         $(
-            impl BinaryInteger for $i {
+            impl Integer for $i {
                 type Bytes = $bytes;
 
                 fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self> {
@@ -144,7 +144,7 @@ macro_rules! impl_binary_integer {
 macro_rules! impl_binary_unsigned_integer {
     ($(($i:ty, $bytes:ty)),*) => {
         $(
-                impl BinaryInteger for $i {
+                impl Integer for $i {
                     type Bytes = $bytes;
 
                     fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self> {
@@ -238,12 +238,12 @@ const F64_SIGNALING_MASK: u64 =
 macro_rules! impl_binary_float {
     ($(($f:ty, $i:ty, $u:ty, $text_writer:ty, $nan_mask:ident, $signaling_mask:ident)),*) => {
         $(
-            impl BinaryFloat for $f {
+            impl Float for $f {
                 type TextWriter = $text_writer;
 
                 type NanPayload = $i;
 
-                fn try_finite_from_ascii<I: Iterator<Item = u8>, E: BinaryInteger>(
+                fn try_finite_from_ascii<I: Iterator<Item = u8>, E: Integer>(
                         is_negative: bool,
                         ascii: I,
                         exponent: E,
@@ -332,10 +332,10 @@ impl_binary_float!(
     )
 );
 
-fn parse_ascii<F: BinaryFloat + str::FromStr>(
+fn parse_ascii<F: Float + str::FromStr>(
     is_negative: bool,
     digits: impl Iterator<Item = u8>,
-    exponent: impl BinaryInteger,
+    exponent: impl Integer,
 ) -> Option<F>
 where
     F::Err: fmt::Debug,

@@ -1,9 +1,9 @@
 use crate::{
     binary::{
         BinaryExponent,
-        BinaryInteger,
         MostSignificantDigit,
     },
+    num::Integer,
     BinaryBuf,
 };
 use core::iter;

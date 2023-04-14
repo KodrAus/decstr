@@ -2,8 +2,8 @@ use crate::{
     binary::{
         try_with_at_least_precision,
         BinaryBuf,
-        BinaryInteger,
     },
+    num::Integer,
     OverflowError,
 };
 

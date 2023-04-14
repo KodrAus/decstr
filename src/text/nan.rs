@@ -8,9 +8,12 @@ use crate::{
     ParseError,
 };
 
-use core::fmt::{
-    self,
-    Write,
+use core::{
+    fmt::{
+        self,
+        Write,
+    },
+    str,
 };
 
 #[derive(Debug)]
@@ -49,6 +52,10 @@ impl<B: TextWriter> NanParser<B> {
             Ok(()) => parser.end(),
             Err(err) => Err(parser.unwrap_context(err)),
         }
+    }
+
+    pub fn nan_is_positive(&mut self, b: u8) {
+        self.buf.nan_is_positive(&mut self.header, b)
     }
 
     pub fn nan_is_negative(&mut self, b: u8) {
@@ -99,7 +106,7 @@ impl<B: TextWriter> NanParser<B> {
                 c if self.buf.expecting(*c) => {
                     self.buf.advance(*b);
                 }
-                c => return Err(ParseError::unexpected_char(*c, &[], "")),
+                c => return Err(ParseError::unexpected_char(*c, "", "")),
             }
         }
 
@@ -134,7 +141,10 @@ impl<B: TextWriter> NanParser<B> {
                 nan_header: self.header,
                 nan_payload: None,
             }),
-            _ => Err(ParseError::unexpected_end(&self.buf.expecting[0..1], "")),
+            _ => Err(ParseError::unexpected_end(
+                str::from_utf8(&self.buf.expecting[0..1]).unwrap(),
+                "",
+            )),
         }
     }
 
@@ -165,6 +175,12 @@ impl<B: TextWriter> NanBuf<B> {
             expecting: NAN_BUF_EXPECTING,
             buf,
         }
+    }
+
+    pub fn nan_is_positive(&mut self, header: &mut ParsedNanHeader, b: u8) {
+        header.is_nan_negative = false;
+
+        self.buf.advance_significand(b);
     }
 
     pub fn nan_is_negative(&mut self, header: &mut ParsedNanHeader, b: u8) {

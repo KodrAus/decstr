@@ -109,7 +109,7 @@ fn next_ascii_declet_rev(chunks: &mut [&[u8]], chunk_index: &mut Option<usize>) 
             let (mut out, mut out_index) = match chunk.len() {
                 // Grab the last byte from the chunk. We might be crossing a chunk boundary or have finished.
                 1 => {
-                    let out = [chunk[chunk.len() - 1], b'0', b'0'];
+                    let out = [chunk[0], b'0', b'0'];
 
                     *chunk_index = c.checked_sub(1);
 
@@ -117,7 +117,7 @@ fn next_ascii_declet_rev(chunks: &mut [&[u8]], chunk_index: &mut Option<usize>) 
                 }
                 // Grab the last 2 bytes from the chunk. We might be crossing a chunk boundary or have finished.
                 2 => {
-                    let out = [chunk[chunk.len() - 1], chunk[chunk.len() - 2], b'0'];
+                    let out = [chunk[1], chunk[0], b'0'];
 
                     *chunk_index = c.checked_sub(1);
 
@@ -126,11 +126,7 @@ fn next_ascii_declet_rev(chunks: &mut [&[u8]], chunk_index: &mut Option<usize>) 
                 // Fast path: Read the next 3 digits in a single pass, then return.
                 // The next call will start from the next chunk or have finished.
                 3 => {
-                    let out = [
-                        chunk[chunk.len() - 1],
-                        chunk[chunk.len() - 2],
-                        chunk[chunk.len() - 3],
-                    ];
+                    let out = [chunk[2], chunk[1], chunk[0]];
 
                     *chunk_index = c.checked_sub(1);
 
@@ -170,7 +166,7 @@ fn next_ascii_declet_rev(chunks: &mut [&[u8]], chunk_index: &mut Option<usize>) 
                     0 => *chunk_index = c.checked_sub(1),
                     // If this is the last byte in the chunk, fetch it and move on to the next one
                     1 => {
-                        out[out_index] = chunk[chunk.len() - 1];
+                        out[out_index] = chunk[0];
                         out_index += 1;
 
                         *chunk_index = c.checked_sub(1);
@@ -290,7 +286,7 @@ using BCD into a `u16`, with the least significant digit in the least significan
 
 ```text
 m                  l
----1---2---3
+        ---1---2---3
 00000000000100100011
 ```
 
@@ -298,7 +294,7 @@ DPD looks at the most significant bit of each digit to decide how to encode the 
 
 ```text
 m                  l
----1---2---3
+        ---1---2---3
 00000000x001x010x011
 ```
 
