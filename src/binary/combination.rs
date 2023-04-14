@@ -305,7 +305,7 @@ pub fn decode_combination_finite<D: BinaryBuf>(decimal: &D) -> (D::Exponent, Mos
     // If the bytes of the exponent are already aligned with the bytes of the decimal then
     // they can be read directly from the decimal buffer.
     let biased_exponent = if decimal_byte_shift == 0 {
-        D::Exponent::from_binary(iter::from_fn(|| {
+        D::Exponent::from_le_bytes(iter::from_fn(|| {
             // If there's more bytes in the decimal then read the next one as the next byte
             // of the exponent
             if decimal_byte_index < max_decimal_byte_index {
@@ -343,7 +343,7 @@ pub fn decode_combination_finite<D: BinaryBuf>(decimal: &D) -> (D::Exponent, Mos
     else {
         let decimal_byte_plus_1_shift = (8 - decimal_byte_shift) as u32;
 
-        D::Exponent::from_binary(iter::from_fn(|| {
+        D::Exponent::from_le_bytes(iter::from_fn(|| {
             // If there are more than 2 bytes left then squash them into the next byte of the exponent.
             if decimal_byte_index + 1 < max_decimal_byte_index {
                 // Read the first part of the next byte in the exponent

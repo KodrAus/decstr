@@ -21,7 +21,7 @@ pub trait Integer {
     where
         Self: Sized;
 
-    fn from_binary<I: Iterator<Item = u8>>(bytes: I) -> Self;
+    fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self;
 
     fn zero() -> Self
     where
@@ -107,7 +107,7 @@ macro_rules! impl_binary_integer {
                     Some(i)
                 }
 
-                fn from_binary<I: Iterator<Item = u8>>(bytes: I) -> Self {
+                fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
                     let mut buf = [0; (<$i>::BITS / 8) as usize];
 
                     for (i, b) in bytes.enumerate() {
@@ -162,7 +162,7 @@ macro_rules! impl_binary_unsigned_integer {
                         Some(i)
                     }
 
-                    fn from_binary<I: Iterator<Item = u8>>(bytes: I) -> Self {
+                    fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
                         let mut buf = [0; (<$i>::BITS / 8) as usize];
 
                         for (i, b) in bytes.enumerate() {

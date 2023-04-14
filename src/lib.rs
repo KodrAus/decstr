@@ -359,16 +359,16 @@ pub struct BigBitstring(binary::ArbitrarySizedBinaryBuf);
 
 #[cfg(feature = "arbitrary-precision")]
 impl BigBitstring {
-    pub fn from_str(n: &str) -> Result<Self, Error> {
+    pub fn try_parse_str(n: &str) -> Result<Self, Error> {
         Ok(BigBitstring(convert::decimal_from_str(n)?))
     }
 
     pub fn from_f64(n: f64) -> Self {
-        BigBitstring(convert::decimal_from_f64(n).expect("always fits"))
+        BigBitstring(convert::decimal_from_binary_float(n).expect("always fits"))
     }
 
     pub fn from_i64(n: i64) -> Self {
-        BigBitstring(convert::decimal_from_i64(n).expect("always fits"))
+        BigBitstring(convert::decimal_from_int(n).expect("always fits"))
     }
 
     pub fn as_le_bytes(&self) -> &[u8] {
@@ -788,6 +788,12 @@ mod tests {
     #[test]
     #[cfg(feature = "arbitrary-precision")]
     fn bigdecimal_large() {
+        fn digits(buf: &mut String, n: usize) {
+            for i in 0..n {
+                buf.push(((i % 9) as u8 + 1 + b'0') as char);
+            }
+        }
+
         let mut s = String::new();
 
         // This is just getting a little silly now. But we want to make sure

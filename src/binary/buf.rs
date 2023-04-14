@@ -2,7 +2,7 @@ use crate::{
     binary::{
         exponent::{
             BinaryExponent,
-            BinaryMath,
+            BinaryExponentMath,
         },
         significand::precision_digits,
     },
@@ -188,7 +188,7 @@ pub trait BinaryBuf {
     fn bytes(&self) -> &[u8];
 }
 
-pub(crate) fn try_with_at_least_precision<D: BinaryBuf, N: BinaryMath>(
+pub(crate) fn try_with_at_least_precision<D: BinaryBuf, N: BinaryExponentMath>(
     integer_digits: usize,
     integer_exponent: Option<N>,
 ) -> Result<D, OverflowError> {
@@ -231,7 +231,9 @@ pub(crate) fn try_with_at_least_precision<D: BinaryBuf, N: BinaryMath>(
 /**
 Calculate the minimum bit-width for a decimal that can encode a given exponent.
 */
-pub(crate) fn minimum_storage_width_bits_for_integer_exponent<N: BinaryMath>(emax: N) -> usize {
+pub(crate) fn minimum_storage_width_bits_for_integer_exponent<N: BinaryExponentMath>(
+    emax: N,
+) -> usize {
     match emax.to_i32() {
         // If the exponent is small, check some specific bounds directly.
         //
@@ -247,7 +249,9 @@ pub(crate) fn minimum_storage_width_bits_for_integer_exponent<N: BinaryMath>(ema
     }
 }
 
-fn calculate_minimum_storage_width_bits_for_integer_exponent<N: BinaryMath>(emax: N) -> usize {
+fn calculate_minimum_storage_width_bits_for_integer_exponent<N: BinaryExponentMath>(
+    emax: N,
+) -> usize {
     // emax = 3 * 2.pow(k / 16 + 3)
     // k = 16 * ((log2(emax / 3) / log2(2)) - 3)
     let storage_width_bits =

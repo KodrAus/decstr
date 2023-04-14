@@ -39,7 +39,7 @@ The decimal floating point format still needs binary math for its exponent, whic
 as a binary integer. The width of these exponents scales much more slowly than the width of the
 decimal itself, so you can get quite far without needing arbitrary-precision integers for them.
 */
-pub(crate) trait BinaryMath:
+pub(crate) trait BinaryExponentMath:
     Integer
     + Add<Output = Self>
     + Sub<Output = Self>
@@ -78,7 +78,7 @@ macro_rules! impl_binary_exponent {
                 }
             }
 
-            impl BinaryMath for $i {
+            impl BinaryExponentMath for $i {
                 fn abs(self) -> Self {
                     <$i>::abs(self)
                 }
@@ -104,14 +104,14 @@ impl_binary_exponent!((i32, [u8; 4]), (i64, [u8; 8]), (i128, [u8; 16]));
 /**
 Apply the bias to an exponent.
 */
-pub(crate) fn add_bias<D: BinaryBuf, N: BinaryMath>(decimal: &D, exp: N) -> N {
+pub(crate) fn add_bias<D: BinaryBuf, N: BinaryExponentMath>(decimal: &D, exp: N) -> N {
     bias::<N>(decimal.storage_width_bits(), decimal.precision_digits()) + exp
 }
 
 /**
 Remove the bias from an exponent.
 */
-pub(crate) fn sub_bias<D: BinaryBuf, N: BinaryMath>(decimal: &D, exp: N) -> N {
+pub(crate) fn sub_bias<D: BinaryBuf, N: BinaryExponentMath>(decimal: &D, exp: N) -> N {
     exp - bias::<N>(decimal.storage_width_bits(), decimal.precision_digits())
 }
 
@@ -128,7 +128,7 @@ pub(crate) fn sub_bias<D: BinaryBuf, N: BinaryMath>(decimal: &D, exp: N) -> N {
 /**
 Calculate the maximum exponent that can be encoded by a decimal with a given bit-width.
 */
-pub(crate) fn emax<N: BinaryMath>(storage_width_bits: usize) -> N {
+pub(crate) fn emax<N: BinaryExponentMath>(storage_width_bits: usize) -> N {
     // emax = 3 * 2.pow(k / 16 + 3)
     N::from_i32(3) * N::pow2((storage_width_bits / 16 + 3) as u32)
 }
@@ -136,7 +136,7 @@ pub(crate) fn emax<N: BinaryMath>(storage_width_bits: usize) -> N {
 /**
 Calculate the bias value to use for a decimal with a given bit-width and number of digits.
 */
-pub(crate) fn bias<N: BinaryMath>(storage_width_bits: usize, precision_digits: usize) -> N {
+pub(crate) fn bias<N: BinaryExponentMath>(storage_width_bits: usize, precision_digits: usize) -> N {
     // bias = emax + p - 2
     emax::<N>(storage_width_bits) + N::from_i32(precision_digits as i32) - N::from_i32(2)
 }

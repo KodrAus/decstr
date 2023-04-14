@@ -86,8 +86,8 @@ impl Integer for DynamicBinaryExponent {
         )?))
     }
 
-    fn from_binary<I: Iterator<Item = u8>>(bytes: I) -> Self {
-        DynamicBinaryExponent(i32::from_binary(bytes))
+    fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
+        DynamicBinaryExponent(Integer::from_le_bytes(bytes))
     }
 
     fn from_i32(exp: i32) -> Self {

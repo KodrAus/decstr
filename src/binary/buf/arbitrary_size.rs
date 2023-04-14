@@ -1,19 +1,21 @@
 use core::{
-    cmp,
     fmt,
     ops::Index,
 };
 
-use crate::binary::{
-    buf::BinaryExponentMath,
-    exponent::{
-        add_bias,
-        sub_bias,
-        BinaryExponent,
+use crate::{
+    binary::{
+        exponent::{
+            add_bias,
+            sub_bias,
+            BinaryExponent,
+        },
+        try_with_at_least_precision,
+        BinaryBuf,
+        BinaryExponentMath,
     },
-    try_with_at_least_precision,
-    BinaryBuf,
-    Overflow,
+    num::Integer,
+    OverflowError,
 };
 
 use num_bigint::BigInt;
@@ -22,7 +24,8 @@ use num_traits::{
     ToPrimitive,
 };
 
-// BigDecimal
+// Big Decimal
+#[derive(Debug, Clone)]
 pub(crate) struct ArbitrarySizedBinaryBuf(Vec<u8>);
 
 pub(crate) struct ArbitrarySizedBinaryExponent(BigInt);
@@ -32,25 +35,29 @@ pub(crate) struct ArbitrarySizedBinaryExponentBytes(Vec<u8>);
 impl BinaryBuf for ArbitrarySizedBinaryBuf {
     type Exponent = ArbitrarySizedBinaryExponent;
 
-    fn try_with_at_least_storage_width_bits(bits: usize) -> Result<Self, Overflow> {
-        let bytes = cmp::max(4, bits / 8);
+    fn try_exponent_from_ascii<I: Iterator<Item = u8>>(
+        is_negative: bool,
+        ascii: I,
+    ) -> Result<ArbitrarySizedBinaryExponent, OverflowError>
+    where
+        Self::Exponent: Sized,
+    {
+        ArbitrarySizedBinaryExponent::try_from_ascii(is_negative, ascii)
+            .ok_or_else(|| OverflowError::exponent_out_of_range(4, "the exponent would overflow"))
+    }
 
+    fn try_with_at_least_storage_width_bytes(bytes: usize) -> Result<Self, OverflowError> {
         Ok(ArbitrarySizedBinaryBuf(vec![0; bytes]))
     }
 
     fn try_with_at_least_precision(
         integer_digits: usize,
-        fractional_digits: usize,
-        exponent: Option<&Self::Exponent>,
-    ) -> Result<Self, Overflow>
+        integer_exponent: Option<&Self::Exponent>,
+    ) -> Result<Self, OverflowError>
     where
         Self: Sized,
     {
-        try_with_at_least_precision(
-            integer_digits,
-            fractional_digits,
-            exponent.map(|e| e.0.clone()),
-        )
+        try_with_at_least_precision(integer_digits, integer_exponent.map(|e| e.0.clone()))
     }
 
     fn bytes_mut(&mut self) -> &mut [u8] {
@@ -62,48 +69,90 @@ impl BinaryBuf for ArbitrarySizedBinaryBuf {
     }
 }
 
-impl BinaryExponent for ArbitrarySizedBinaryExponent {
+impl Integer for ArbitrarySizedBinaryExponent {
     type Bytes = ArbitrarySizedBinaryExponentBytes;
 
-    fn from_ascii(is_negative: bool, digits: &[u8]) -> Self {
-        let mut exp = BigInt::parse_bytes(digits, 10).expect("pre-validated digits");
-        if is_negative {
-            exp = -exp;
-        }
-
-        ArbitrarySizedBinaryExponent(exp)
+    fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self> {
+        Some(ArbitrarySizedBinaryExponent(Integer::try_from_ascii(
+            is_negative,
+            ascii,
+        )?))
     }
 
-    fn from_binary<I: Iterator<Item = u8>>(bytes: I) -> Self {
-        let bytes = bytes.collect::<Vec<_>>();
-
-        ArbitrarySizedBinaryExponent(BigInt::from_signed_bytes_le(&bytes))
+    fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
+        ArbitrarySizedBinaryExponent(Integer::from_le_bytes(bytes))
     }
 
     fn from_i32(exp: i32) -> Self {
-        ArbitrarySizedBinaryExponent(exp.into())
+        ArbitrarySizedBinaryExponent(Integer::from_i32(exp))
     }
 
     fn to_i32(&self) -> Option<i32> {
-        BigInt::to_i32(&self.0)
+        Integer::to_i32(&self.0)
     }
 
-    fn to_i64(&self) -> Option<i64> {
-        BigInt::to_i64(&self.0)
+    fn is_negative(&self) -> bool {
+        Integer::is_negative(&self.0)
     }
 
-    fn to_i128(&self) -> Option<i128> {
-        BigInt::to_i128(&self.0)
+    fn to_le_bytes(&self) -> Self::Bytes {
+        ArbitrarySizedBinaryExponentBytes(Integer::to_le_bytes(&self.0))
     }
 
+    fn to_fmt<W: fmt::Write>(&self, out: W) -> fmt::Result {
+        Integer::to_fmt(&self.0, out)
+    }
+}
+
+impl Integer for BigInt {
+    type Bytes = Vec<u8>;
+
+    fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let ascii = ascii.collect::<Vec<_>>();
+        let n = BigInt::parse_bytes(&ascii, 10)?;
+
+        Some(if is_negative { -n } else { n })
+    }
+
+    fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self {
+        let buf = bytes.collect::<Vec<_>>();
+
+        BigInt::from_signed_bytes_le(&buf)
+    }
+
+    fn from_i32(n: i32) -> Self {
+        BigInt::from(n)
+    }
+
+    fn to_i32(&self) -> Option<i32> {
+        ToPrimitive::to_i32(self)
+    }
+
+    fn is_negative(&self) -> bool {
+        Signed::is_negative(self)
+    }
+
+    fn to_le_bytes(&self) -> Self::Bytes {
+        self.to_signed_bytes_le()
+    }
+
+    fn to_fmt<W: fmt::Write>(&self, mut out: W) -> fmt::Result {
+        write!(out, "{}", self)
+    }
+}
+
+impl BinaryExponent for ArbitrarySizedBinaryExponent {
     #[must_use]
     fn raise(&self, integer_digits: usize) -> Self {
-        ArbitrarySizedBinaryExponent((&self.0) + integer_digits)
+        ArbitrarySizedBinaryExponent(&self.0 + integer_digits)
     }
 
     #[must_use]
     fn lower(&self, fractional_digits: usize) -> Self {
-        ArbitrarySizedBinaryExponent((&self.0) - fractional_digits)
+        ArbitrarySizedBinaryExponent(&self.0 - fractional_digits)
     }
 
     #[must_use]
@@ -114,14 +163,6 @@ impl BinaryExponent for ArbitrarySizedBinaryExponent {
     #[must_use]
     fn unbias<D: BinaryBuf>(&self, decimal: &D) -> Self {
         ArbitrarySizedBinaryExponent(sub_bias(decimal, self.0.clone()))
-    }
-
-    fn to_le_bytes(&self) -> Self::Bytes {
-        ArbitrarySizedBinaryExponentBytes(self.0.to_signed_bytes_le())
-    }
-
-    fn to_fmt<W: fmt::Write>(&self, mut out: W) -> fmt::Result {
-        write!(out, "{}", self.0)
     }
 }
 
@@ -137,9 +178,24 @@ impl fmt::Debug for ArbitrarySizedBinaryExponent {
     }
 }
 
+impl Index<usize> for ArbitrarySizedBinaryExponentBytes {
+    type Output = u8;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        // Since the exponent is dynamically sized, it might not actually have as
+        // many bytes as a decimal is expecting. If we don't have one, then return a `0`
+        // byte instead
+        if let Some(b) = self.0.get(index) {
+            b
+        } else {
+            &0
+        }
+    }
+}
+
 impl BinaryExponentMath for BigInt {
-    fn new(n: usize) -> Self {
-        BigInt::from(n)
+    fn abs(self) -> Self {
+        Signed::abs(&self)
     }
 
     fn pow2(e: u32) -> Self {
@@ -172,24 +228,5 @@ impl BinaryExponentMath for BigInt {
         let log2 = (significant_bit_index + (significant_byte_index * 8)).saturating_sub(1);
 
         log2
-    }
-
-    fn is_negative(&self) -> bool {
-        Signed::is_negative(self)
-    }
-}
-
-impl Index<usize> for ArbitrarySizedBinaryExponentBytes {
-    type Output = u8;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        // Since the exponent is dynamically sized, it might not actually have as
-        // many bytes as a decimal is expecting. If we don't have one, then return a `0`
-        // byte instead
-        if let Some(b) = self.0.get(index) {
-            b
-        } else {
-            &0
-        }
     }
 }
