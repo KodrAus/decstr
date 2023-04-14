@@ -349,11 +349,11 @@ where
 
     let mut written = 0;
     for digit in digits.skip_while(|d| *d == b'0') {
-        parser.push_significand_digit(digit);
+        parser.checked_push_significand_digit(digit).ok()?;
         written += 1;
     }
     if written == 0 {
-        parser.push_significand_digit(b'0');
+        parser.checked_push_significand_digit(b'0').ok()?;
     }
 
     // Parse the exponent

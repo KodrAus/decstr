@@ -50,7 +50,15 @@ impl<B: TextWriter> FiniteParser<B> {
         }
     }
 
-    pub fn push_significand_digit(&mut self, digit: u8) {
+    pub fn checked_push_significand_digit(&mut self, digit: u8) -> Result<(), ParseError> {
+        if self.buf.remaining_capacity() == Some(0) {
+            return Err(ParseError::buffer_too_small());
+        }
+
+        Ok(self.push_significand_digit(digit))
+    }
+
+    pub(in crate::text) fn push_significand_digit(&mut self, digit: u8) {
         self.has_digits = true;
 
         self.buf
@@ -69,7 +77,7 @@ impl<B: TextWriter> FiniteParser<B> {
         self.buf.significand_is_positive(&mut self.significand)
     }
 
-    pub fn push_significand_decimal_point(&mut self) {
+    pub(in crate::text) fn push_significand_decimal_point(&mut self) {
         self.has_decimal = true;
         self.has_digits = false;
 

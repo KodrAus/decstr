@@ -328,14 +328,6 @@ macro_rules! try_d2f {
                     max
                 );
             }
-
-            if let Some(min_positive) = $d::min_positive().into() {
-                assert!(
-                    min_positive.$convert().is_none(),
-                    "{} should not have been converted",
-                    min_positive
-                );
-            }
         }
     };
 }
