@@ -63,6 +63,12 @@ mod convert;
 mod num;
 mod text;
 
+use binary::{
+    Decimal128Buf,
+    Decimal32Buf,
+    Decimal64Buf,
+};
+
 use crate::{
     binary::{
         is_finite,
@@ -331,6 +337,21 @@ impl From<f64> for Bitstring {
 }
 
 /**
+A 32bit decimal number.
+*/
+pub struct Bitstring32(Decimal32Buf);
+
+/**
+A 64bit decimal number.
+*/
+pub struct Bitstring64(Decimal64Buf);
+
+/**
+A 128bit decimal number.
+*/
+pub struct Bitstring128(Decimal128Buf);
+
+/**
 An arbitrary precision decimal number.
 */
 #[cfg(feature = "arbitrary-precision")]
@@ -390,12 +411,6 @@ impl fmt::Display for BigBitstring {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    pub(crate) fn digits(buf: &mut String, n: usize) {
-        for i in 0..n {
-            buf.push(((i % 9) as u8 + 1 + b'0') as char);
-        }
-    }
 
     pub(crate) fn bitstr(b: &[u8]) -> String {
         use core::fmt::Write;

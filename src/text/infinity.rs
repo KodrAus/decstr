@@ -49,10 +49,6 @@ impl<B: TextWriter> InfinityParser<B> {
         self.infinity.is_infinity_negative = true;
     }
 
-    pub fn parse_fmt(&mut self, f: impl fmt::Display) -> Result<(), ParseError> {
-        write!(self, "{}", f).map_err(|err| self.unwrap_context(err))
-    }
-
     pub fn parse_ascii(&mut self, ascii: &[u8]) -> Result<(), ParseError> {
         if let Some(remaining_capacity) = self.buf.remaining_capacity() {
             if remaining_capacity < ascii.len() {

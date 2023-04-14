@@ -24,20 +24,6 @@ impl<const N: usize> Default for FixedSizeTextBuf<N> {
     }
 }
 
-impl<const N: usize> FixedSizeTextBuf<N> {
-    #[cfg(test)]
-    pub fn at_end(at_end: &[u8]) -> Self {
-        let mut buf = [b'0'; N];
-
-        buf[..at_end.len()].copy_from_slice(at_end);
-
-        FixedSizeTextBuf {
-            buf,
-            len: at_end.len(),
-        }
-    }
-}
-
 impl<const N: usize> TextBuf for FixedSizeTextBuf<N> {
     fn get_ascii(&self) -> &[u8] {
         &self.buf[..self.len]

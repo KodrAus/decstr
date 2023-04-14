@@ -45,15 +45,6 @@ impl<B: TextWriter> NanParser<B> {
         }
     }
 
-    pub fn parse(buf: B, input: impl fmt::Display) -> Result<ParsedNan<B>, ParseError> {
-        let mut parser = NanParser::begin(buf);
-
-        match write!(&mut parser, "{}", input) {
-            Ok(()) => parser.end(),
-            Err(err) => Err(parser.unwrap_context(err)),
-        }
-    }
-
     pub fn nan_is_positive(&mut self, b: u8) {
         self.buf.nan_is_positive(&mut self.header, b)
     }
@@ -68,10 +59,6 @@ impl<B: TextWriter> NanParser<B> {
 
     pub fn nan_is_signaling(&mut self, b: u8) {
         self.buf.nan_is_signaling(&mut self.header, b)
-    }
-
-    pub fn parse_fmt(&mut self, f: impl fmt::Display) -> Result<(), ParseError> {
-        write!(self, "{}", f).map_err(|err| self.unwrap_context(err))
     }
 
     pub fn parse_ascii(&mut self, ascii: &[u8]) -> Result<(), ParseError> {
