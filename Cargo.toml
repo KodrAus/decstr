@@ -1,10 +1,17 @@
 [package]
 name = "decstr"
 version = "0.1.0"
+authors = ["Ashley Mannix <ashleymannix@live.com.au>"]
 edition = "2021"
+license = "Apache-2.0 OR MIT"
+documentation = "https://docs.rs/decstr"
+description = "Streaming, structured value serialization"
+repository = "https://github.com/KodrAus/decstr"
+readme = "README.md"
+keywords = ["serialization", "no_std"]
+categories = ["encoding", "no-std"]
 
 [features]
-# "default" = ["arbitrary-precision"]
 "std" = []
 "arbitrary-precision" = [
     "std",
@@ -12,19 +19,25 @@ edition = "2021"
     "dep:num-traits",
 ]
 
+# Used to guarantee consistent conversion of binary floating point
+# to decimal, where decimal numbers are not normalized
 [dependencies.ryu]
 version = "1"
 
+# Used to effciently convert binary integers to decimal
 [dependencies.itoa]
 version = "1"
 
+# Used for the exponent of arbitrary precision decimals
 [dependencies.num-bigint]
 version = "0.4"
 optional = true
 
+# Used for the exponent of arbitrary precision decimals
 [dependencies.num-traits]
 version = "0.2"
 optional = true
 
+# Used to sanity check the implementation
 [dev-dependencies.dec]
 version = "0.4"

@@ -41,6 +41,7 @@ where:
 - `t`: The trailing significand.
 
 Note that this library _always_ encodes in little-endian byte-order, regardless of the endianness of the underlying platform.
+Also note, this encoding is different than `libdecimal`'s internal encoding, which isn't specified.
 
 More sizes besides 32bit are supported. The table uses it to minimize space.
 
@@ -91,6 +92,7 @@ exponent. There's some bit-twiddling involved to encode the bits for a number ac
 but it's all explained along the way.
 - `convert`: Combines the `text` and `binary` modules to convert between strings and Rust primitive
 numbers and encoded bitstrings.
+- `bitstring`: The user-facing types.
 
 There is no special handling for decimal numbers of specific precisions. This is a trade-off between
 simplicity and performance. The same implementation handles encoding decimal32 up to decimal256 and beyond.
