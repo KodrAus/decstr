@@ -238,13 +238,16 @@ impl<B: TextWriter> DecimalParser<B> {
                     // A `-` sign doesn't tell us whether the number is finite or not
                     // We stash it away until we know for sure
                     b'-' if is_negative.is_none() => *is_negative = Some(true),
+                    // A `+` sign is treated the same as `-`
                     b'+' if is_negative.is_none() => *is_negative = Some(false),
                     // Signaling NaN
                     b's' | b'S' => {
                         let mut nan = NanParser::begin(buf.take().expect("missing buffer"));
 
-                        if let Some(true) = is_negative {
-                            nan.nan_is_negative(b'-');
+                        match is_negative {
+                            Some(false) => nan.nan_is_positive(b'+'),
+                            Some(true) => nan.nan_is_negative(b'-'),
+                            _ => (),
                         }
 
                         nan.nan_is_signaling(ascii[0]);
@@ -387,6 +390,17 @@ mod tests {
                 }),
             ),
             (
+                "+NaN",
+                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
+                    nan_buf: PreFormattedTextBuf::at_end("+NaN"),
+                    nan_header: ParsedNanHeader {
+                        is_nan_signaling: false,
+                        is_nan_negative: false,
+                    },
+                    nan_payload: None,
+                }),
+            ),
+            (
                 "sNaN",
                 ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
                     nan_buf: PreFormattedTextBuf::at_end("sNaN"),
@@ -404,6 +418,17 @@ mod tests {
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: true,
+                    },
+                    nan_payload: None,
+                }),
+            ),
+            (
+                "+sNaN",
+                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
+                    nan_buf: PreFormattedTextBuf::at_end("+sNaN"),
+                    nan_header: ParsedNanHeader {
+                        is_nan_signaling: true,
+                        is_nan_negative: false,
                     },
                     nan_payload: None,
                 }),
@@ -656,6 +681,11 @@ mod tests {
 
             assert_eq!(expected, &nan, "{}", input);
         }
+    }
+
+    #[test]
+    fn parse_fails_on_buffer_too_small() {
+        todo!()
     }
 
     #[test]
