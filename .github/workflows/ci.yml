@@ -1,0 +1,75 @@
+name: decstr
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        rust:
+          - stable
+          - beta
+          - nightly
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Install cargo-hack
+        run: cargo install cargo-hack
+
+      - name: Powerset
+        run: cargo hack test --feature-powerset
+
+      - name: All
+        run: cargo test --all
+
+  embedded:
+    name: Build (embedded)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          target: thumbv6m-none-eabi
+          override: true
+
+      - name: Powerset
+        run: cargo check -Z avoid-dev-deps --target thumbv6m-none-eabi
+
+  mips:
+    name: Test (Big Endian)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install Cross
+        run: cargo install cross
+
+      - name: Default features
+        run: cross test --target mips-unknown-linux-gnu
