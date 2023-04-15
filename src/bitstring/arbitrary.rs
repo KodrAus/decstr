@@ -10,6 +10,8 @@ use crate::{
 
 /**
 An arbitrary precision decimal number.
+
+This type is only available when the `arbitrary-precision` feature is enabled.
 */
 pub struct BigBitstring(ArbitrarySizedBinaryBuf);
 

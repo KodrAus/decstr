@@ -9,6 +9,6 @@ fn main() -> Result<(), decstr::Error> {
 
     assert_eq!(4, small.as_le_bytes().len());
     assert_eq!(20, large.as_le_bytes().len());
-    
+
     Ok(())
 }
