@@ -27,12 +27,26 @@ pub trait BinaryExponent: Integer {
     */
     fn lower(&self, by: usize) -> Self;
 
+    /**
+    Add the bias to the exponent.
+
+    After this operation, the exponent _must_ be non-negative.
+    */
     fn bias<D: BinaryBuf>(&self, decimal: &D) -> Self;
 
+    /**
+    Subtract the bias from the exponent.
+    */
     fn unbias<D: BinaryBuf>(&self, decimal: &D) -> Self;
 
+    /**
+    Get a value representing the maximum exponent that can be encoded into the given decimal.
+    */
     fn emax<D: BinaryBuf>(decimal: &D) -> Self;
 
+    /**
+    Get a value representing the minimum exponent that can be encoded into the given decimal.
+    */
     fn emin<D: BinaryBuf>(decimal: &D) -> Self;
 }
 
@@ -53,8 +67,19 @@ pub(crate) trait BinaryExponentMath:
     + Clone
     + Sized
 {
+    /**
+    Calculate the absolute value of this integer.
+    */
     fn abs(self) -> Self;
+
+    /**
+    Get the result of 2^e.
+    */
     fn pow2(e: u32) -> Self;
+
+    /**
+    Approximate the base-2 logarithm of this integer.
+    */
     fn log2(self) -> usize;
 }
 
@@ -152,6 +177,7 @@ pub(crate) fn emax<N: BinaryExponentMath>(storage_width_bits: usize) -> N {
 Calculate the minimum exponent that can be encoded by a decimal with a given bit-width.
 */
 pub(crate) fn emin<N: BinaryExponentMath>(storage_width_bits: usize) -> N {
+    // emin = 1 - emax
     N::from_i32(1) - emax(storage_width_bits)
 }
 

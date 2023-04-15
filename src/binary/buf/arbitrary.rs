@@ -26,7 +26,9 @@ use num_traits::{
     ToPrimitive,
 };
 
-// Big Decimal
+/**
+A buffer that can represent any sized decimal.
+*/
 #[derive(Debug, Clone)]
 pub(crate) struct ArbitrarySizedBinaryBuf(Vec<u8>);
 

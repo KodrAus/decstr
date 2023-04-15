@@ -1,3 +1,7 @@
+/*!
+User-facing types that wrap a decimal number encoded in a buffer.
+*/
+
 macro_rules! classify {
     ($d:ident) => {
         impl $d {

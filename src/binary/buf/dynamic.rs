@@ -13,7 +13,9 @@ use crate::{
     OverflowError,
 };
 
-// Decimal
+/**
+A dynamically sized array that chooses an appropriate size for a given decimal.
+*/
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DynamicBinaryBuf<const N: usize> {
     buf: [u8; N],

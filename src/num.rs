@@ -15,14 +15,26 @@ use crate::text::{
 Generic binary integers.
 */
 pub trait Integer {
+    /**
+    The integer represented as a little-endian buffer.
+    */
     type Bytes: Index<usize, Output = u8>;
 
+    /**
+    Parse the integer from ASCII digits.
+    */
     fn try_from_ascii<I: Iterator<Item = u8>>(is_negative: bool, ascii: I) -> Option<Self>
     where
         Self: Sized;
 
+    /**
+    Convert from a stream of bytes in little-endian byte-order.
+    */
     fn from_le_bytes<I: Iterator<Item = u8>>(bytes: I) -> Self;
 
+    /**
+    Get an instance of the value `0`.
+    */
     fn zero() -> Self
     where
         Self: Sized,
@@ -30,16 +42,34 @@ pub trait Integer {
         Self::from_i32(0)
     }
 
+    /**
+    Convert from a 32-bit signed integer.
+    */
     fn from_i32(n: i32) -> Self;
 
+    /**
+    Try convert into a 32-bit signed integer.
+    */
     fn to_i32(&self) -> Option<i32>;
 
+    /**
+    Whether or not this integer is negative.
+    */
     fn is_negative(&self) -> bool;
 
+    /**
+    Convert this integer into a little-endian buffer.
+    */
     fn to_le_bytes(&self) -> Self::Bytes;
 
+    /**
+    Write this integer as ASCII with an optional leading sign.
+    */
     fn to_fmt<W: fmt::Write>(&self, out: W) -> fmt::Result;
 
+    /**
+    An adapter that can display this integer using its `to_fmt` implementation.
+    */
     fn as_display(&self) -> AsDisplay<&Self> {
         AsDisplay(self)
     }
@@ -57,9 +87,19 @@ impl<'a, T: Integer> fmt::Display for AsDisplay<&'a T> {
 Generic binary floating points.
 */
 pub(crate) trait Float {
+    /**
+    A text writer that can buffer any valid instance of this number.
+    */
     type TextWriter: TextBuf + TextWriter + Default;
+
+    /**
+    An integer that can represent any valid payload on this number.
+    */
     type NanPayload: Integer;
 
+    /**
+    Parse the number using the same text format as decimals.
+    */
     fn try_finite_from_ascii<I: Iterator<Item = u8>, E: Integer>(
         is_negative: bool,
         ascii: I,
@@ -68,18 +108,47 @@ pub(crate) trait Float {
     where
         Self: Sized;
 
+    /**
+    Get an instance of an infinity.
+    */
     fn infinity(is_negative: bool) -> Self;
 
+    /**
+    Get an instance of a NaN with the given payload.
+    */
     fn nan(is_negative: bool, is_signaling: bool, payload: Self::NanPayload) -> Self;
 
+    /**
+    Whether or not the number is negative.
+    */
     fn is_sign_negative(&self) -> bool;
 
+    /**
+    Whether or not the number is finite.
+    */
     fn is_finite(&self) -> bool;
 
+    /**
+    Whether or not the number is infinity.
+    */
     fn is_infinite(&self) -> bool;
 
+    /**
+    Whether or not the number is NaN.
+    */
     fn is_nan(&self) -> bool;
+
+    /**
+    Whether or not the number is sNaN.
+
+    Note that IEEE 754 didn't originally specify how to interpret the signaling bit, so older
+    MIPS architectures interpret qNaN and sNaN differently to more recent ones.
+    */
     fn is_nan_signaling(&self) -> bool;
+
+    /**
+    Get the payload with a NaN if there is one.
+    */
     fn nan_payload(&self) -> Option<Self::NanPayload>;
 }
 
@@ -219,7 +288,6 @@ const F32_BUF_SIZE: usize = F32_MAX_MANTISSA_DIGITS + F32_MAX_EXPONENT_DIGITS + 
 // The payload for a NaN is the significand bits, except for the most significant,
 // which is used to identify signaling vs quiet NaNs
 const F32_NAN_PAYLOAD_MASK: u32 = 0b0000_0000_0111_1111_1111_1111_1111_1111u32;
-
 const F32_SIGNALING_MASK: u32 = 0b0000_0000_1000_0000_0000_0000_0000_0000u32;
 
 // 2f64.powi(52 + 1).log10().ceil() + 1f64
@@ -231,7 +299,6 @@ const F64_BUF_SIZE: usize = F64_MAX_MANTISSA_DIGITS + F64_MAX_EXPONENT_DIGITS + 
 // which is used to identify signaling vs quiet NaNs
 const F64_NAN_PAYLOAD_MASK: u64 =
     0b0000_0000_0000_0111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111u64;
-
 const F64_SIGNALING_MASK: u64 =
     0b0000_0000_0000_1000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000u64;
 
@@ -332,6 +399,9 @@ impl_binary_float!(
     )
 );
 
+/**
+Parse a binary floating point number from text.
+*/
 fn parse_ascii<F: Float + str::FromStr>(
     is_negative: bool,
     digits: impl Iterator<Item = u8>,

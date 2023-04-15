@@ -73,6 +73,11 @@ pub fn encode_significand_trailing_digits<D: BinaryBuf, const N: usize>(
     }
 }
 
+/**
+Encode the trailing digits into the decimal buffer.
+
+This method returns the final digit to encode into the combination field as the `MostSignificantDigit`.
+*/
 pub fn encode_significand_trailing_digits_repeat<D: BinaryBuf>(
     decimal: &mut D,
     digit: u8,
@@ -98,6 +103,9 @@ pub fn encode_significand_trailing_digits_repeat<D: BinaryBuf>(
     MostSignificantDigit::from_ascii(digit)
 }
 
+/**
+Decode and stream the trailing digits encoded into the decimal.
+*/
 pub fn decode_significand_trailing_declets<'a, D: BinaryBuf>(
     decimal: &'a D,
 ) -> impl Iterator<Item = [u8; 3]> + 'a {
@@ -259,13 +267,29 @@ impl MostSignificantDigit {
 }
 
 /**
-Encode ASCII digits into binary coded decimal (BCD).
+Encode a single ASCII digit into binary coded decimal (BCD).
 
 BCD is a translation from ASCII that simply uses the lower 4 bits of each digit. In ASCII,
 the lower 4 bits of digits are encoded the same way as their binary integer equivalents. For example,
 the number `6` in ASCII is `0b0011_0110`, and as a binary integer is `0000_0110`. Since the higher
 4 bits of each ASCII digit are always the same, we can ignore them. That lets us squash 3 digits
 handily into a `u16` (it would technically fit 4, but we only need 3).
+*/
+fn encode_ascii_digit_to_bcd(ascii: u8) -> u8 {
+    ascii - b'0'
+}
+
+/**
+Decode a single binary coded decimal (BCD) into an ASCII digit.
+
+There are some details on what BCD is in the encoding function.
+*/
+fn decode_bcd_digit_to_ascii(bcd: u8) -> u8 {
+    bcd + b'0'
+}
+
+/**
+Encode ASCII digits into binary coded decimal (BCD).
 */
 fn encode_ascii_declet_to_bcd(ascii: [u8; 3]) -> u16 {
     let d0 = encode_ascii_digit_to_bcd(ascii[0]) as u16;
@@ -275,18 +299,8 @@ fn encode_ascii_declet_to_bcd(ascii: [u8; 3]) -> u16 {
     d2 | d1 | d0
 }
 
-fn encode_ascii_digit_to_bcd(ascii: u8) -> u8 {
-    ascii - b'0'
-}
-
-fn decode_bcd_digit_to_ascii(bcd: u8) -> u8 {
-    bcd + b'0'
-}
-
 /**
 Decode binary coded decimal (BCD) into ASCII digits.
-
-There are some details on what BCD is in the encoding function.
 */
 fn decode_bcd_declet_to_ascii(bcd: u16) -> [u8; 3] {
     const D2: u16 = 0b0000_1111_0000_0000u16;

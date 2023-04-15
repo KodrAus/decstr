@@ -72,6 +72,11 @@ pub trait BinaryBuf {
     where
         Self: Sized;
 
+    /**
+    Try get a buffer with at least enough precision for a `bytes`-width decimal.
+
+    If this method returns `Some`, then the buffer will have at least `bytes`-width, but may have more.
+    */
     fn try_with_exactly_storage_width_bytes(bytes: usize) -> Result<Self, OverflowError>
     where
         Self: Sized,
@@ -188,6 +193,12 @@ pub trait BinaryBuf {
     fn bytes(&self) -> &[u8];
 }
 
+/**
+Try construct an instance of `D` with enough space to fit a decimal of `integer_digits` precision
+and `integer_exponent`.
+
+If `D` can't fit the decimal without potentially rounding then an error will be returned.
+*/
 pub(crate) fn try_with_at_least_precision<D: BinaryBuf, N: BinaryExponentMath>(
     integer_digits: usize,
     integer_exponent: Option<N>,
@@ -249,6 +260,12 @@ pub(crate) fn minimum_storage_width_bits_for_integer_exponent<N: BinaryExponentM
     }
 }
 
+/**
+Calculate the minimum bit-width for a decimal that can encode a given exponent.
+
+This function is non-exact. It may over-provision to account for possible rounding errors, but will
+never under-provision.
+*/
 fn calculate_minimum_storage_width_bits_for_integer_exponent<N: BinaryExponentMath>(
     emax: N,
 ) -> usize {
@@ -294,6 +311,9 @@ pub(crate) fn minimum_storage_width_bits_for_precision_digits(precision_digits: 
     }
 }
 
+/**
+Calculate the minimum bit-width for a decimal that can encode a number of digits.
+*/
 fn calculate_minimum_storage_width_bits_for_precision_digits(precision_digits: usize) -> usize {
     // d = 9k / 32 – 2
     // k = 32 * (d + 2) / 9

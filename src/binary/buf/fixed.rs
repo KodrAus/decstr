@@ -10,6 +10,9 @@ use crate::{
     OverflowError,
 };
 
+/**
+A fixed-size array that always encodes a decimal with the same precision.
+*/
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct FixedBinaryBuf<const N: usize, E>([u8; N], PhantomData<E>);

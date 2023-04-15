@@ -41,7 +41,8 @@ where:
 - `t`: The trailing significand.
 
 Note that this library _always_ encodes in little-endian byte-order, regardless of the endianness of the underlying platform.
-Also note, this encoding is different than `libdecimal`'s internal encoding, which isn't specified.
+Also note, this encoding is different on big-endian platforms than `libdecimal`'s internal encoding, which isn't specified, but
+currently uses arrays of 32bit integers.
 
 More sizes besides 32bit are supported. The table uses it to minimize space.
 
@@ -504,8 +505,10 @@ mod tests {
         s.push('e');
         digits(&mut s, 512);
 
-        let d = BigBitstring::try_parse_str(&s).expect("failed to parse decimal");
+        let ds = BigBitstring::try_parse_str(&s).expect("failed to parse decimal");
+        let dd = BigBitstring::try_parse(format_args!("{}", s)).expect("failed to parse decimal");
 
-        assert_eq!(58272, d.as_le_bytes().len() * 8);
+        assert_eq!(58272, ds.as_le_bytes().len() * 8);
+        assert_eq!(58272, dd.as_le_bytes().len() * 8);
     }
 }

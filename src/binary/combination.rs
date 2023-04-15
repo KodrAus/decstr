@@ -1,3 +1,18 @@
+/*!
+The combination field follows the sign bit, in the most significant bytes of the decimal.
+
+It's possible to classify a decimal as finite, infinite, or NaN just by examining the most
+significant byte.
+
+Within the combination field, the exponent is encoded as a regular binary integer. Since
+this library is little-endian, the exponent is also encoded in little-endian byte-order.
+The exponent isn't written as-is though. It's _biased_ by adding a number that guarantees
+it's always non-negative, and then squashed with the two most-significant-bits of the
+most-significant-digit of the significand.
+
+For more details, see the respective encoding functions.
+*/
+
 use crate::{
     binary::{
         BinaryBuf,
@@ -36,6 +51,9 @@ const NAN_COMBINATION: u8 = NAN | SIGNALING;
 // All bits needed to determine whether a decimal is finite.
 const FINITE_COMBINATION: u8 = 0b0111_1000u8;
 
+/**
+Mark the decimal as being an infinity.
+*/
 pub fn encode_combination_infinity<D: BinaryBuf>(decimal: &mut D, is_infinity_negative: bool) {
     // Infinity encoding only ever needs to touch the most significant byte of the decimal.
     //
@@ -50,6 +68,9 @@ pub fn encode_combination_infinity<D: BinaryBuf>(decimal: &mut D, is_infinity_ne
     }
 }
 
+/**
+Mark the decimal as being a NaN.
+*/
 pub fn encode_combination_nan<D: BinaryBuf>(
     decimal: &mut D,
     is_nan_negative: bool,
@@ -64,6 +85,9 @@ pub fn encode_combination_nan<D: BinaryBuf>(
     buf[buf.len() - 1] = NAN | sign_bit | signaling_bit;
 }
 
+/**
+Mark the decimal as being finite.
+*/
 pub fn encode_combination_finite<D: BinaryBuf>(
     decimal: &mut D,
     significand_is_negative: bool,
@@ -446,36 +470,54 @@ fn most_significant_exponent_offset(exponent_bits: usize) -> (u32, usize) {
     }
 }
 
+/**
+Whether or not the decimal is finite.
+*/
 pub fn is_finite<D: BinaryBuf>(decimal: &D) -> bool {
     let buf = decimal.bytes();
 
     buf[buf.len() - 1] & FINITE_COMBINATION != FINITE_COMBINATION
 }
 
+/**
+Whether or not the decimal is infinite.
+*/
 pub fn is_infinite<D: BinaryBuf>(decimal: &D) -> bool {
     let buf = decimal.bytes();
 
     buf[buf.len() - 1] & INFINITY_COMBINATION == INFINITY
 }
 
+/**
+Whether or not the decimal is NaN.
+*/
 pub fn is_nan<D: BinaryBuf>(decimal: &D) -> bool {
     let buf = decimal.bytes();
 
     buf[buf.len() - 1] & NAN == NAN
 }
 
+/**
+Whether or not the decimal is qNaN.
+*/
 pub fn is_quiet_nan<D: BinaryBuf>(decimal: &D) -> bool {
     let buf = decimal.bytes();
 
     buf[buf.len() - 1] & NAN_COMBINATION == NAN
 }
 
+/**
+Whether or not the decimal is sNaN.
+*/
 pub fn is_signaling_nan<D: BinaryBuf>(decimal: &D) -> bool {
     let buf = decimal.bytes();
 
     buf[buf.len() - 1] & NAN_COMBINATION == NAN_COMBINATION
 }
 
+/**
+Whether or not the sign bit is set.
+*/
 pub fn is_sign_negative<D: BinaryBuf>(decimal: &D) -> bool {
     let buf = decimal.bytes();
 
