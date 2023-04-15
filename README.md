@@ -1,5 +1,9 @@
 # `decstr`: IEEE 754 decimal bitstrings
 
+[![decstr](https://github.com/KodrAus/decstr/actions/workflows/ci.yml/badge.svg)](https://github.com/KodrAus/decstr/actions/workflows/ci.yml)
+[![Latest version](https://img.shields.io/crates/v/decstr.svg)](https://crates.io/crates/decstr)
+[![Documentation Latest](https://docs.rs/decstr/badge.svg)](https://docs.rs/decstr)
+
 This library implements an IEEE 754 decimal floating point compatible encoding in pure Rust. It's intended to support the exchange and storage of arbitrary precision numbers in a consistent and portable way.
 
 This library does not implement decimal arithmetic. It only supports conversion.
