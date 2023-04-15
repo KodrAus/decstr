@@ -1,6 +1,6 @@
-# IEEE 754 decimal bitstrings
+# `decstr`: IEEE 754 decimal bitstrings
 
-This library implements an IEEE 754 decimal floating point compatible encoding in Rust. It's intended to support the exchange and storage of arbitrary precision numbers in a consistent and portable way.
+This library implements an IEEE 754 decimal floating point compatible encoding in pure Rust. It's intended to support the exchange and storage of arbitrary precision numbers in a consistent and portable way.
 
 This library does not implement decimal arithmetic. It only supports conversion.
 

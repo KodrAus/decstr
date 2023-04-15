@@ -5,10 +5,10 @@ authors = ["Ashley Mannix <ashleymannix@live.com.au>"]
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 documentation = "https://docs.rs/decstr"
-description = "Streaming, structured value serialization"
+description = "IEEE 754 decimal floating point bitstrings"
 repository = "https://github.com/KodrAus/decstr"
 readme = "README.md"
-keywords = ["serialization", "no_std"]
+keywords = ["serialization", "no_std", "decimal"]
 categories = ["encoding", "no-std"]
 
 [features]
