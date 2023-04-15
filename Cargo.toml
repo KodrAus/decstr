@@ -11,6 +11,9 @@ readme = "README.md"
 keywords = ["serialization", "no_std", "decimal"]
 categories = ["encoding", "no-std"]
 
+[package.metadata.docs.rs]
+features = ["arbitrary-precision"]
+
 [features]
 "std" = []
 "arbitrary-precision" = [

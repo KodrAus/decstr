@@ -1,3 +1,5 @@
+use std::fmt;
+
 fn main() -> Result<(), decstr::Error> {
     let decimal = decstr::Bitstring::try_parse_str("123.44")?;
 
@@ -9,6 +11,6 @@ fn main() -> Result<(), decstr::Error> {
 
     assert_eq!(4, small.as_le_bytes().len());
     assert_eq!(20, large.as_le_bytes().len());
-    
+
     Ok(())
 }
