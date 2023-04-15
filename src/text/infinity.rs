@@ -77,7 +77,7 @@ impl<B: TextWriter> InfinityParser<B> {
                 c => {
                     return Err(ParseError::unexpected_char(
                         *c,
-                        str::from_utf8(&self.expecting[0..1]).unwrap(),
+                        str::from_utf8(self.expecting.get(0..1).unwrap_or(b"")).unwrap(),
                     ))
                 }
             }
@@ -96,7 +96,7 @@ impl<B: TextWriter> InfinityParser<B> {
             // If we just encounter `inf` then we still have a valid infinity
             b"" | b"inity" => Ok(self.infinity),
             _ => Err(ParseError::unexpected_end(
-                str::from_utf8(&self.expecting[0..1]).unwrap(),
+                str::from_utf8(self.expecting.get(0..1).unwrap_or(b"")).unwrap(),
             )),
         }
     }

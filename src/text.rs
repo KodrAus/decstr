@@ -932,8 +932,11 @@ mod tests {
             ("1e+x", "unexpected character `x`, expected any digit"),
             ("1.", "unexpected end of input, expected a sign or digit"),
             ("inx", "unexpected character `x`, expected `f`"),
+            ("infinityx", "unexpected character `x`"),
             ("nx", "unexpected character `x`"),
             ("snx", "unexpected character `x`"),
+            ("nan()x", "unexpected character `x`"),
+            ("snan()x", "unexpected character `x`"),
             (
                 "--",
                 "unexpected character `-`, expected a finite number, infinity, or NaN",

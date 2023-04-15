@@ -140,7 +140,7 @@ impl<B: TextWriter> NanParser<B> {
                 nan_payload: None,
             }),
             _ => Err(ParseError::unexpected_end(
-                str::from_utf8(&self.buf.expecting[0..1]).unwrap(),
+                str::from_utf8(self.buf.expecting.get(0..1).unwrap_or(b"")).unwrap(),
             )),
         }
     }
