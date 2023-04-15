@@ -1,5 +1,3 @@
-use std::fmt;
-
 fn main() -> Result<(), decstr::Error> {
     let decimal = decstr::Bitstring::try_parse_str("123.44")?;
 
