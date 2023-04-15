@@ -10,16 +10,16 @@ use crate::text::{
 A buffer that already contains an ASCII-coded decimal.
 */
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct PreFormattedTextBuf<'a> {
+pub struct StrTextBuf<'a> {
     ascii: &'a [u8],
     index: usize,
 }
 
-impl<'a> PreFormattedTextBuf<'a> {
+impl<'a> StrTextBuf<'a> {
     pub fn new(buf: &'a str) -> Self {
         let ascii = buf.as_bytes();
 
-        PreFormattedTextBuf { ascii, index: 0 }
+        StrTextBuf { ascii, index: 0 }
     }
 
     #[cfg(test)]
@@ -27,17 +27,17 @@ impl<'a> PreFormattedTextBuf<'a> {
         let ascii = buf.as_bytes();
         let index = ascii.len();
 
-        PreFormattedTextBuf { ascii, index }
+        StrTextBuf { ascii, index }
     }
 }
 
-impl<'a> TextBuf for PreFormattedTextBuf<'a> {
+impl<'a> TextBuf for StrTextBuf<'a> {
     fn get_ascii(&self) -> &[u8] {
         self.ascii
     }
 }
 
-impl<'a> TextWriter for PreFormattedTextBuf<'a> {
+impl<'a> TextWriter for StrTextBuf<'a> {
     fn remaining_capacity(&self) -> Option<usize> {
         None
     }

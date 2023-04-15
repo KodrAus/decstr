@@ -2,15 +2,15 @@ use crate::{
     binary::{
         encode_max,
         encode_min,
-        Decimal128Buf,
+        FixedBinaryBuf,
     },
-    text::FixedSizeTextBuf,
+    text::ArrayTextBuf,
 };
 
 /**
 A 128bit decimal number.
 */
-pub struct Bitstring128(Decimal128Buf);
+pub struct Bitstring128(FixedBinaryBuf<16, i32>);
 
 impl Bitstring128 {
     /**
@@ -19,7 +19,7 @@ impl Bitstring128 {
     The buffer is assumed to be in little-endian byte-order already.
     */
     pub fn from_le_bytes(bytes: [u8; 16]) -> Self {
-        Self(Decimal128Buf(bytes))
+        Self(FixedBinaryBuf::from(bytes))
     }
 
     /**
@@ -30,7 +30,7 @@ impl Bitstring128 {
     */
     pub fn as_le_bytes(&self) -> &[u8; 16] {
         // Even on big-endian platforms we always encode numbers in little-endian order
-        &(self.0).0
+        self.0.as_ref()
     }
 
     /**
@@ -44,7 +44,7 @@ impl Bitstring128 {
     Create a decimal with its maximum finite value.
     */
     pub fn max() -> Self {
-        let mut buf = Decimal128Buf::ZERO;
+        let mut buf = FixedBinaryBuf::ZERO;
 
         encode_max(&mut buf, false);
 
@@ -55,7 +55,7 @@ impl Bitstring128 {
     Create a decimal with its minimum finite value.
     */
     pub fn min() -> Self {
-        let mut buf = Decimal128Buf::ZERO;
+        let mut buf = FixedBinaryBuf::ZERO;
 
         encode_max(&mut buf, true);
 
@@ -66,7 +66,7 @@ impl Bitstring128 {
     Create a decimal with its minimum positive non-zero value.
     */
     pub fn min_positive() -> Self {
-        let mut buf = Decimal128Buf::ZERO;
+        let mut buf = FixedBinaryBuf::ZERO;
 
         encode_min(&mut buf, false);
 
@@ -76,7 +76,7 @@ impl Bitstring128 {
 
 classify!(Bitstring128);
 
-try_s2d!(FixedSizeTextBuf::<128> => Bitstring128);
+try_s2d!(ArrayTextBuf::<128> => Bitstring128);
 d2s!(Bitstring128);
 
 f2d!(f32 => from_f32 => Bitstring128);

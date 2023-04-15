@@ -1,143 +1,68 @@
+use core::marker::PhantomData;
+
 use crate::{
     binary::{
         try_with_at_least_precision,
         BinaryBuf,
+        BinaryExponent,
+        BinaryExponentMath,
     },
-    num::Integer,
     OverflowError,
 };
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Decimal32Buf(pub(crate) [u8; 4]);
+pub(crate) struct FixedBinaryBuf<const N: usize, E>([u8; N], PhantomData<E>);
 
-impl Decimal32Buf {
-    pub(crate) const ZERO: Self = Decimal32Buf([0; 4]);
+impl<const N: usize, E> From<[u8; N]> for FixedBinaryBuf<N, E> {
+    fn from(buf: [u8; N]) -> FixedBinaryBuf<N, E> {
+        FixedBinaryBuf(buf, PhantomData)
+    }
 }
 
-// Decimal32
-impl BinaryBuf for Decimal32Buf {
-    type Exponent = i32;
-
-    fn try_exponent_from_ascii<I: Iterator<Item = u8>>(
-        is_negative: bool,
-        ascii: I,
-    ) -> Result<i32, OverflowError>
-    where
-        Self::Exponent: Sized,
-    {
-        i32::try_from_ascii(is_negative, ascii).ok_or_else(|| {
-            OverflowError::exponent_out_of_range(4, "the exponent would overflow an `i32`")
-        })
+impl<const N: usize, E> From<FixedBinaryBuf<N, E>> for [u8; N] {
+    fn from(value: FixedBinaryBuf<N, E>) -> Self {
+        value.0
     }
+}
 
-    fn try_with_at_least_storage_width_bytes(bytes: usize) -> Result<Self, OverflowError> {
-        if bytes > 4 {
-            Err(OverflowError::would_overflow(4, bytes))
-        } else {
-            Ok(Decimal32Buf([0; 4]))
-        }
-    }
-
-    fn try_with_at_least_precision(
-        integer_digits: usize,
-        integer_exponent: Option<&Self::Exponent>,
-    ) -> Result<Self, OverflowError>
-    where
-        Self: Sized,
-    {
-        try_with_at_least_precision(integer_digits, integer_exponent.copied())
-    }
-
-    fn bytes_mut(&mut self) -> &mut [u8] {
-        &mut self.0
-    }
-
-    fn bytes(&self) -> &[u8] {
+impl<const N: usize, E> AsRef<[u8; N]> for FixedBinaryBuf<N, E> {
+    fn as_ref(&self) -> &[u8; N] {
         &self.0
     }
 }
 
-#[repr(transparent)]
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Decimal64Buf(pub(crate) [u8; 8]);
-
-impl Decimal64Buf {
-    pub(crate) const ZERO: Self = Decimal64Buf([0; 8]);
-}
-
-// Decimal64
-impl BinaryBuf for Decimal64Buf {
-    type Exponent = i32;
-
-    fn try_exponent_from_ascii<I: Iterator<Item = u8>>(
-        is_negative: bool,
-        ascii: I,
-    ) -> Result<i32, OverflowError>
-    where
-        Self::Exponent: Sized,
-    {
-        i32::try_from_ascii(is_negative, ascii).ok_or_else(|| {
-            OverflowError::exponent_out_of_range(4, "the exponent would overflow an `i32`")
-        })
-    }
-
-    fn try_with_at_least_storage_width_bytes(bytes: usize) -> Result<Self, OverflowError> {
-        if bytes > 8 {
-            Err(OverflowError::would_overflow(8, bytes))
-        } else {
-            Ok(Decimal64Buf([0; 8]))
-        }
-    }
-
-    fn try_with_at_least_precision(
-        integer_digits: usize,
-        integer_exponent: Option<&Self::Exponent>,
-    ) -> Result<Self, OverflowError>
-    where
-        Self: Sized,
-    {
-        try_with_at_least_precision(integer_digits, integer_exponent.copied())
-    }
-
-    fn bytes_mut(&mut self) -> &mut [u8] {
+impl<const N: usize, E> AsMut<[u8; N]> for FixedBinaryBuf<N, E> {
+    fn as_mut(&mut self) -> &mut [u8; N] {
         &mut self.0
     }
-
-    fn bytes(&self) -> &[u8] {
-        &self.0
-    }
 }
 
-#[repr(transparent)]
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Decimal128Buf(pub(crate) [u8; 16]);
-
-impl Decimal128Buf {
-    pub(crate) const ZERO: Self = Decimal128Buf([0; 16]);
+impl<const N: usize, E> FixedBinaryBuf<N, E> {
+    pub(crate) const ZERO: Self = FixedBinaryBuf([0; N], PhantomData);
 }
 
-// Decimal128
-impl BinaryBuf for Decimal128Buf {
-    type Exponent = i32;
+// Decimal{32,64,128}
+impl<const N: usize, E: BinaryExponent + BinaryExponentMath> BinaryBuf for FixedBinaryBuf<N, E> {
+    type Exponent = E;
 
     fn try_exponent_from_ascii<I: Iterator<Item = u8>>(
         is_negative: bool,
         ascii: I,
-    ) -> Result<i32, OverflowError>
+    ) -> Result<E, OverflowError>
     where
         Self::Exponent: Sized,
     {
-        i32::try_from_ascii(is_negative, ascii).ok_or_else(|| {
+        E::try_from_ascii(is_negative, ascii).ok_or_else(|| {
             OverflowError::exponent_out_of_range(4, "the exponent would overflow an `i32`")
         })
     }
 
     fn try_with_at_least_storage_width_bytes(bytes: usize) -> Result<Self, OverflowError> {
-        if bytes > 16 {
-            Err(OverflowError::would_overflow(16, bytes))
+        if bytes > N {
+            Err(OverflowError::would_overflow(N, bytes))
         } else {
-            Ok(Decimal128Buf([0; 16]))
+            Ok(FixedBinaryBuf([0; N], PhantomData))
         }
     }
 
@@ -148,7 +73,7 @@ impl BinaryBuf for Decimal128Buf {
     where
         Self: Sized,
     {
-        try_with_at_least_precision(integer_digits, integer_exponent.copied())
+        try_with_at_least_precision(integer_digits, integer_exponent.cloned())
     }
 
     fn bytes_mut(&mut self) -> &mut [u8] {

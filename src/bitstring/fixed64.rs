@@ -2,15 +2,15 @@ use crate::{
     binary::{
         encode_max,
         encode_min,
-        Decimal64Buf,
+        FixedBinaryBuf,
     },
-    text::FixedSizeTextBuf,
+    text::ArrayTextBuf,
 };
 
 /**
 A 64bit decimal number.
 */
-pub struct Bitstring64(Decimal64Buf);
+pub struct Bitstring64(FixedBinaryBuf<8, i32>);
 
 impl Bitstring64 {
     /**
@@ -19,7 +19,7 @@ impl Bitstring64 {
     The buffer is assumed to be in little-endian byte-order already.
     */
     pub fn from_le_bytes(bytes: [u8; 8]) -> Self {
-        Self(Decimal64Buf(bytes))
+        Self(FixedBinaryBuf::from(bytes))
     }
 
     /**
@@ -30,7 +30,7 @@ impl Bitstring64 {
     */
     pub fn as_le_bytes(&self) -> &[u8; 8] {
         // Even on big-endian platforms we always encode numbers in little-endian order
-        &(self.0).0
+        self.0.as_ref()
     }
 
     /**
@@ -44,7 +44,7 @@ impl Bitstring64 {
     Create a decimal with its maximum finite value.
     */
     pub fn max() -> Self {
-        let mut buf = Decimal64Buf::ZERO;
+        let mut buf = FixedBinaryBuf::ZERO;
 
         encode_max(&mut buf, false);
 
@@ -55,7 +55,7 @@ impl Bitstring64 {
     Create a decimal with its minimum finite value.
     */
     pub fn min() -> Self {
-        let mut buf = Decimal64Buf::ZERO;
+        let mut buf = FixedBinaryBuf::ZERO;
 
         encode_max(&mut buf, true);
 
@@ -66,7 +66,7 @@ impl Bitstring64 {
     Create a decimal with its minimum positive non-zero value.
     */
     pub fn min_positive() -> Self {
-        let mut buf = Decimal64Buf::ZERO;
+        let mut buf = FixedBinaryBuf::ZERO;
 
         encode_min(&mut buf, false);
 
@@ -76,7 +76,7 @@ impl Bitstring64 {
 
 classify!(Bitstring64);
 
-try_s2d!(FixedSizeTextBuf::<64> => Bitstring64);
+try_s2d!(ArrayTextBuf::<64> => Bitstring64);
 d2s!(Bitstring64);
 
 f2d!(f32 => from_f32 => Bitstring64);

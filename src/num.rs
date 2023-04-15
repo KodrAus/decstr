@@ -5,8 +5,8 @@ use core::{
 };
 
 use crate::text::{
+    ArrayTextBuf,
     FiniteParser,
-    FixedSizeTextBuf,
     TextBuf,
     TextWriter,
 };
@@ -318,7 +318,7 @@ impl_binary_float!(
         f32,
         i32,
         u32,
-        FixedSizeTextBuf<F32_BUF_SIZE>,
+        ArrayTextBuf<F32_BUF_SIZE>,
         F32_NAN_PAYLOAD_MASK,
         F32_SIGNALING_MASK
     ),
@@ -326,7 +326,7 @@ impl_binary_float!(
         f64,
         i64,
         u64,
-        FixedSizeTextBuf<F64_BUF_SIZE>,
+        ArrayTextBuf<F64_BUF_SIZE>,
         F64_NAN_PAYLOAD_MASK,
         F64_SIGNALING_MASK
     )

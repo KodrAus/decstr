@@ -9,69 +9,58 @@ use crate::text::{
 /**
 A buffer that splits between the significand and exponent so they can use different buffers.
  */
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct FixedSizeTextBuf<const N: usize> {
-    buf: [u8; N],
-    len: usize,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VecTextBuf {
+    buf: Vec<u8>,
 }
 
-impl<const N: usize> Default for FixedSizeTextBuf<N> {
+impl Default for VecTextBuf {
     fn default() -> Self {
-        FixedSizeTextBuf {
-            buf: [b'0'; N],
-            len: 0,
-        }
+        VecTextBuf { buf: Vec::new() }
     }
 }
 
-impl<const N: usize> TextBuf for FixedSizeTextBuf<N> {
+impl TextBuf for VecTextBuf {
     fn get_ascii(&self) -> &[u8] {
-        &self.buf[..self.len]
+        &self.buf
     }
 }
 
-impl<const N: usize> TextWriter for FixedSizeTextBuf<N> {
+impl TextWriter for VecTextBuf {
     fn remaining_capacity(&self) -> Option<usize> {
-        Some(N - self.len)
+        None
     }
 
     fn begin_significand(&mut self) -> ParsedSignificand {
         ParsedSignificand {
             significand_is_negative: false,
-            significand_range: self.len..self.len,
+            significand_range: self.buf.len()..self.buf.len(),
             decimal_point: None,
         }
     }
 
     fn advance_significand(&mut self, b: u8) {
-        self.buf[self.len] = b;
-        self.len += 1;
+        self.buf.push(b);
     }
 
     fn push_significand_digit(&mut self, significand: &mut ParsedSignificand, digit: u8) {
-        self.buf[self.len] = digit;
-
-        self.len += 1;
+        self.buf.push(digit);
 
         significand.significand_range.end += 1;
     }
 
     fn push_significand_decimal_point(&mut self, significand: &mut ParsedSignificand) {
-        self.buf[self.len] = b'.';
-
         significand.decimal_point = Some(ParsedDecimalPoint {
-            decimal_point_range: self.len..self.len + 1,
+            decimal_point_range: self.buf.len()..self.buf.len() + 1,
         });
 
-        self.len += 1;
+        self.buf.push(b'.');
 
         significand.significand_range.end += 1;
     }
 
     fn significand_is_negative(&mut self, significand: &mut ParsedSignificand) {
-        self.buf[self.len] = b'-';
-
-        self.len += 1;
+        self.buf.push(b'-');
 
         significand.significand_is_negative = true;
         significand.significand_range.start += 1;
@@ -83,28 +72,22 @@ impl<const N: usize> TextWriter for FixedSizeTextBuf<N> {
     }
 
     fn begin_exponent(&mut self) -> ParsedExponent {
-        self.buf[self.len] = b'e';
-
-        self.len += 1;
+        self.buf.push(b'e');
 
         ParsedExponent {
             exponent_is_negative: false,
-            exponent_range: self.len..self.len,
+            exponent_range: self.buf.len()..self.buf.len(),
         }
     }
 
     fn push_exponent_digit(&mut self, exponent: &mut ParsedExponent, digit: u8) {
-        self.buf[self.len] = digit;
-
-        self.len += 1;
+        self.buf.push(digit);
 
         exponent.exponent_range.end += 1;
     }
 
     fn exponent_is_negative(&mut self, exponent: &mut ParsedExponent) {
-        self.buf[self.len] = b'-';
-
-        self.len += 1;
+        self.buf.push(b'-');
 
         exponent.exponent_is_negative = true;
         exponent.exponent_range.start += 1;

@@ -3,7 +3,7 @@ use crate::{
         BinaryBuf,
         DynamicBinaryBuf,
     },
-    text::FixedSizeTextBuf,
+    text::ArrayTextBuf,
     Error,
     OverflowError,
 };
@@ -80,7 +80,7 @@ impl Bitstring {
 
 classify!(Bitstring);
 
-try_s2d!(FixedSizeTextBuf::<128> => Bitstring);
+try_s2d!(ArrayTextBuf::<128> => Bitstring);
 d2s!(Bitstring);
 
 f2d!(f32 => from_f32 => Bitstring);

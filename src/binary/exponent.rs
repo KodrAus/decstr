@@ -50,6 +50,7 @@ pub(crate) trait BinaryExponentMath:
     + Mul<Output = Self>
     + Div<Output = Self>
     + Debug
+    + Clone
     + Sized
 {
     fn abs(self) -> Self;

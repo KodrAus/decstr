@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn encode_byte_order() {
-        let mut buf = Decimal128Buf::ZERO;
+        let mut buf = FixedBinaryBuf::<16, i32>::ZERO;
 
         let is_negative = true;
         let exp = 2;
@@ -61,36 +61,36 @@ mod tests {
 
         // Bytes are ordered least to most significant regardless of the platform's endianness
         assert_eq!(
-            buf.0,
+            *buf.as_ref(),
             [207, 91, 57, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 8, 162]
         );
     }
 
     #[test]
     fn encode_min_max_32() {
-        encode_max(&mut Decimal32Buf::ZERO, false);
-        encode_max(&mut Decimal32Buf::ZERO, true);
+        encode_max(&mut FixedBinaryBuf::<4, i32>::ZERO, false);
+        encode_max(&mut FixedBinaryBuf::<4, i32>::ZERO, true);
 
-        encode_min(&mut Decimal32Buf::ZERO, false);
-        encode_min(&mut Decimal32Buf::ZERO, true);
+        encode_min(&mut FixedBinaryBuf::<4, i32>::ZERO, false);
+        encode_min(&mut FixedBinaryBuf::<4, i32>::ZERO, true);
     }
 
     #[test]
     fn encode_min_max_64() {
-        encode_max(&mut Decimal64Buf::ZERO, false);
-        encode_max(&mut Decimal64Buf::ZERO, true);
+        encode_max(&mut FixedBinaryBuf::<8, i32>::ZERO, false);
+        encode_max(&mut FixedBinaryBuf::<8, i32>::ZERO, true);
 
-        encode_min(&mut Decimal64Buf::ZERO, false);
-        encode_min(&mut Decimal64Buf::ZERO, true);
+        encode_min(&mut FixedBinaryBuf::<8, i32>::ZERO, false);
+        encode_min(&mut FixedBinaryBuf::<8, i32>::ZERO, true);
     }
 
     #[test]
     fn encode_min_max_128() {
-        encode_max(&mut Decimal128Buf::ZERO, false);
-        encode_max(&mut Decimal128Buf::ZERO, true);
+        encode_max(&mut FixedBinaryBuf::<16, i32>::ZERO, false);
+        encode_max(&mut FixedBinaryBuf::<16, i32>::ZERO, true);
 
-        encode_min(&mut Decimal128Buf::ZERO, false);
-        encode_min(&mut Decimal128Buf::ZERO, true);
+        encode_min(&mut FixedBinaryBuf::<16, i32>::ZERO, false);
+        encode_min(&mut FixedBinaryBuf::<16, i32>::ZERO, true);
     }
 
     #[test]
@@ -106,7 +106,7 @@ mod tests {
     fn decode() {
         // Ensure we don't panic reading potentially nonsense encodings
         for b in 0..255 {
-            let buf = Decimal128Buf([b; 16]);
+            let buf = FixedBinaryBuf::<16, i32>::from([b; 16]);
 
             let _ = decode_combination_finite(&buf);
             let _ = decode_significand_trailing_declets(&buf).count();

@@ -188,9 +188,9 @@ enum DecimalParserInner<B> {
     Nan(NanParser<B>),
 }
 
-impl<'a> DecimalParser<PreFormattedTextBuf<'a>> {
-    pub fn parse_str(input: &'a str) -> Result<ParsedDecimal<PreFormattedTextBuf<'a>>, ParseError> {
-        let mut parser = DecimalParser::begin(PreFormattedTextBuf::new(input));
+impl<'a> DecimalParser<StrTextBuf<'a>> {
+    pub fn parse_str(input: &'a str) -> Result<ParsedDecimal<StrTextBuf<'a>>, ParseError> {
+        let mut parser = DecimalParser::begin(StrTextBuf::new(input));
 
         parser.parse_ascii(input.as_bytes())?;
 
@@ -360,20 +360,20 @@ mod tests {
         for (input, expected) in &[
             (
                 "inf",
-                ParsedDecimal::<PreFormattedTextBuf>::Infinity(ParsedInfinity {
+                ParsedDecimal::<StrTextBuf>::Infinity(ParsedInfinity {
                     is_infinity_negative: false,
                 }),
             ),
             (
                 "-inf",
-                ParsedDecimal::<PreFormattedTextBuf>::Infinity(ParsedInfinity {
+                ParsedDecimal::<StrTextBuf>::Infinity(ParsedInfinity {
                     is_infinity_negative: true,
                 }),
             ),
             (
                 "NaN",
-                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("NaN"),
+                ParsedDecimal::<StrTextBuf>::Nan(ParsedNan {
+                    nan_buf: StrTextBuf::at_end("NaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -383,8 +383,8 @@ mod tests {
             ),
             (
                 "-NaN",
-                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("-NaN"),
+                ParsedDecimal::<StrTextBuf>::Nan(ParsedNan {
+                    nan_buf: StrTextBuf::at_end("-NaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: true,
@@ -394,8 +394,8 @@ mod tests {
             ),
             (
                 "+NaN",
-                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("+NaN"),
+                ParsedDecimal::<StrTextBuf>::Nan(ParsedNan {
+                    nan_buf: StrTextBuf::at_end("+NaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -405,8 +405,8 @@ mod tests {
             ),
             (
                 "sNaN",
-                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("sNaN"),
+                ParsedDecimal::<StrTextBuf>::Nan(ParsedNan {
+                    nan_buf: StrTextBuf::at_end("sNaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: false,
@@ -416,8 +416,8 @@ mod tests {
             ),
             (
                 "-sNaN",
-                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("-sNaN"),
+                ParsedDecimal::<StrTextBuf>::Nan(ParsedNan {
+                    nan_buf: StrTextBuf::at_end("-sNaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: true,
@@ -427,8 +427,8 @@ mod tests {
             ),
             (
                 "+sNaN",
-                ParsedDecimal::<PreFormattedTextBuf>::Nan(ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("+sNaN"),
+                ParsedDecimal::<StrTextBuf>::Nan(ParsedNan {
+                    nan_buf: StrTextBuf::at_end("+sNaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: false,
@@ -438,8 +438,8 @@ mod tests {
             ),
             (
                 "1.23456e7",
-                ParsedDecimal::<PreFormattedTextBuf>::Finite(ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("1.23456e7"),
+                ParsedDecimal::<StrTextBuf>::Finite(ParsedFinite {
+                    finite_buf: StrTextBuf::at_end("1.23456e7"),
                     finite_significand: ParsedSignificand {
                         significand_range: 0..7,
                         decimal_point: Some(ParsedDecimalPoint {
@@ -455,8 +455,8 @@ mod tests {
             ),
             (
                 "-1.23456e7",
-                ParsedDecimal::<PreFormattedTextBuf>::Finite(ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("-1.23456e7"),
+                ParsedDecimal::<StrTextBuf>::Finite(ParsedFinite {
+                    finite_buf: StrTextBuf::at_end("-1.23456e7"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: true,
                         significand_range: 1..8,
@@ -472,7 +472,7 @@ mod tests {
                 }),
             ),
         ] {
-            let mut parser = DecimalParser::begin(PreFormattedTextBuf::new(input));
+            let mut parser = DecimalParser::begin(StrTextBuf::new(input));
             parser.write_str(input).expect("failed to parse");
             let parsed = parser.end().expect("failed to parse");
 
@@ -486,7 +486,7 @@ mod tests {
             (
                 "0",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("0"),
+                    finite_buf: StrTextBuf::at_end("0"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..1,
@@ -498,7 +498,7 @@ mod tests {
             (
                 "-0",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("-0"),
+                    finite_buf: StrTextBuf::at_end("-0"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: true,
                         significand_range: 1..2,
@@ -510,7 +510,7 @@ mod tests {
             (
                 "+0",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("+0"),
+                    finite_buf: StrTextBuf::at_end("+0"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 1..2,
@@ -522,7 +522,7 @@ mod tests {
             (
                 "00",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("00"),
+                    finite_buf: StrTextBuf::at_end("00"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..2,
@@ -534,7 +534,7 @@ mod tests {
             (
                 "0.0",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("0.0"),
+                    finite_buf: StrTextBuf::at_end("0.0"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..3,
@@ -548,7 +548,7 @@ mod tests {
             (
                 "0.00",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("0.00"),
+                    finite_buf: StrTextBuf::at_end("0.00"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..4,
@@ -562,7 +562,7 @@ mod tests {
             (
                 "123",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("123"),
+                    finite_buf: StrTextBuf::at_end("123"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..3,
@@ -574,7 +574,7 @@ mod tests {
             (
                 "123.456",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("123.456"),
+                    finite_buf: StrTextBuf::at_end("123.456"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..7,
@@ -588,7 +588,7 @@ mod tests {
             (
                 "123e456",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("123e456"),
+                    finite_buf: StrTextBuf::at_end("123e456"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..3,
@@ -603,7 +603,7 @@ mod tests {
             (
                 "123.456e789",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("123.456e789"),
+                    finite_buf: StrTextBuf::at_end("123.456e789"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..7,
@@ -620,7 +620,7 @@ mod tests {
             (
                 "123e-456",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("123e-456"),
+                    finite_buf: StrTextBuf::at_end("123e-456"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..3,
@@ -635,7 +635,7 @@ mod tests {
             (
                 "123.456e-789",
                 ParsedFinite {
-                    finite_buf: PreFormattedTextBuf::at_end("123.456e-789"),
+                    finite_buf: StrTextBuf::at_end("123.456e-789"),
                     finite_significand: ParsedSignificand {
                         significand_is_negative: false,
                         significand_range: 0..7,
@@ -650,7 +650,7 @@ mod tests {
                 },
             ),
         ] {
-            let mut parser = FiniteParser::begin(PreFormattedTextBuf::new(input));
+            let mut parser = FiniteParser::begin(StrTextBuf::new(input));
             parser.write_str(input).expect("failed to parse");
             let parsed = parser.end().expect("failed to parse");
 
@@ -722,7 +722,7 @@ mod tests {
                 },
             ),
         ] {
-            let mut parser = InfinityParser::begin(PreFormattedTextBuf::new(input));
+            let mut parser = InfinityParser::begin(StrTextBuf::new(input));
             parser.write_str(input).expect("failed to parse");
             let parsed = parser.end().expect("failed to parse");
 
@@ -736,7 +736,7 @@ mod tests {
             (
                 "nan",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("nan"),
+                    nan_buf: StrTextBuf::at_end("nan"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -747,7 +747,7 @@ mod tests {
             (
                 "-nan",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("-nan"),
+                    nan_buf: StrTextBuf::at_end("-nan"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: true,
@@ -758,7 +758,7 @@ mod tests {
             (
                 "+nan",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("+nan"),
+                    nan_buf: StrTextBuf::at_end("+nan"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -769,7 +769,7 @@ mod tests {
             (
                 "snan",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("snan"),
+                    nan_buf: StrTextBuf::at_end("snan"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: false,
@@ -780,7 +780,7 @@ mod tests {
             (
                 "-snan",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("-snan"),
+                    nan_buf: StrTextBuf::at_end("-snan"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: true,
@@ -791,7 +791,7 @@ mod tests {
             (
                 "+snan",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("+snan"),
+                    nan_buf: StrTextBuf::at_end("+snan"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: false,
@@ -802,7 +802,7 @@ mod tests {
             (
                 "NaN",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("NaN"),
+                    nan_buf: StrTextBuf::at_end("NaN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -813,7 +813,7 @@ mod tests {
             (
                 "SNAN",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("SNAN"),
+                    nan_buf: StrTextBuf::at_end("SNAN"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: true,
                         is_nan_negative: false,
@@ -824,7 +824,7 @@ mod tests {
             (
                 "nan(1234)",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("nan(1234)"),
+                    nan_buf: StrTextBuf::at_end("nan(1234)"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -838,7 +838,7 @@ mod tests {
             (
                 "nan()",
                 ParsedNan {
-                    nan_buf: PreFormattedTextBuf::at_end("nan()"),
+                    nan_buf: StrTextBuf::at_end("nan()"),
                     nan_header: ParsedNanHeader {
                         is_nan_signaling: false,
                         is_nan_negative: false,
@@ -850,7 +850,7 @@ mod tests {
                 },
             ),
         ] {
-            let mut parser = NanParser::begin(PreFormattedTextBuf::new(input));
+            let mut parser = NanParser::begin(StrTextBuf::new(input));
             let _ = parser.write_str(input);
 
             let nan = parser.end().expect("failed to parse");
@@ -863,19 +863,19 @@ mod tests {
     fn parse_fails_on_buffer_too_small() {
         let expected_err = "the buffer is too small";
 
-        let mut buf = DecimalParser::begin(FixedSizeTextBuf::<1>::default());
+        let mut buf = DecimalParser::begin(ArrayTextBuf::<1>::default());
         let err = buf.parse_ascii(b"123").unwrap_err();
         assert_eq!(expected_err, &err.to_string());
 
-        let mut buf = FiniteParser::begin(FixedSizeTextBuf::<1>::default());
+        let mut buf = FiniteParser::begin(ArrayTextBuf::<1>::default());
         let err = buf.parse_ascii(b"123").unwrap_err();
         assert_eq!(expected_err, &err.to_string());
 
-        let mut buf = InfinityParser::begin(FixedSizeTextBuf::<1>::default());
+        let mut buf = InfinityParser::begin(ArrayTextBuf::<1>::default());
         let err = buf.parse_ascii(b"inf").unwrap_err();
         assert_eq!(expected_err, &err.to_string());
 
-        let mut buf = NanParser::begin(FixedSizeTextBuf::<1>::default());
+        let mut buf = NanParser::begin(ArrayTextBuf::<1>::default());
         let err = buf.parse_ascii(b"nan").unwrap_err();
         assert_eq!(expected_err, &err.to_string());
     }

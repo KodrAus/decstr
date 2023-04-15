@@ -203,7 +203,7 @@ macro_rules! try_d2i {
             );
 
             if $i::MIN != 0 {
-                if let Some(min) = $d::min().into() {
+                if let Some::<$d>(min) = $d::min().into() {
                     assert!(
                         min.$convert().is_none(),
                         "{} should not have been converted",
@@ -212,7 +212,7 @@ macro_rules! try_d2i {
                 }
             }
 
-            if let Some(max) = $d::max().into() {
+            if let Some::<$d>(max) = $d::max().into() {
                 assert!(
                     max.$convert().is_none(),
                     "{} should not have been converted",
@@ -273,15 +273,15 @@ macro_rules! d2f {
         fn $convert() {
             let _ = $d::zero().$convert();
 
-            if let Some(min) = $d::min().into() {
+            if let Some::<$d>(min) = $d::min().into() {
                 let _ = min.$convert();
             }
 
-            if let Some(max) = $d::max().into() {
+            if let Some::<$d>(max) = $d::max().into() {
                 let _ = max.$convert();
             }
 
-            if let Some(min_positive) = $d::min_positive().into() {
+            if let Some::<$d>(min_positive) = $d::min_positive().into() {
                 let _ = min_positive.$convert();
             }
         }
@@ -362,7 +362,7 @@ macro_rules! try_d2f {
                 $d::zero()
             );
 
-            if let Some(min) = $d::min().into() {
+            if let Some::<$d>(min) = $d::min().into() {
                 assert!(
                     min.$convert().is_none(),
                     "{} should not have been converted",
@@ -370,7 +370,7 @@ macro_rules! try_d2f {
                 );
             }
 
-            if let Some(max) = $d::max().into() {
+            if let Some::<$d>(max) = $d::max().into() {
                 assert!(
                     max.$convert().is_none(),
                     "{} should not have been converted",

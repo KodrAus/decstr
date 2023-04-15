@@ -26,7 +26,7 @@ use crate::{
         ParsedInfinity,
         ParsedNan,
         ParsedNanHeader,
-        PreFormattedTextBuf,
+        StrTextBuf,
     },
     ConvertError,
     OverflowError,
@@ -99,11 +99,9 @@ pub(crate) fn decimal_from_binary_float<D: BinaryBuf, F: Float + ryu::Float>(
         // Infinities represent overflow conditions. They can be either positive or negative.
         // Unlike NaNs, infinities don't carry diagnostic payloads.
 
-        decimal_from_parsed(ParsedDecimal::<PreFormattedTextBuf>::Infinity(
-            ParsedInfinity {
-                is_infinity_negative: float.is_sign_negative(),
-            },
-        ))
+        decimal_from_parsed(ParsedDecimal::<StrTextBuf>::Infinity(ParsedInfinity {
+            is_infinity_negative: float.is_sign_negative(),
+        }))
     } else {
         // The value is a NaN (not a number).
         //

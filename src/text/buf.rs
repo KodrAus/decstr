@@ -3,13 +3,19 @@ use crate::text::{
     ParsedSignificand,
 };
 
-mod buffered;
-mod pre_formatted;
+mod array;
+mod str;
+
+#[cfg(feature = "arbitrary-precision")]
+mod vec;
 
 pub use self::{
-    buffered::*,
-    pre_formatted::*,
+    array::*,
+    str::*,
 };
+
+#[cfg(feature = "arbitrary-precision")]
+pub use self::vec::*;
 
 /**
 A buffer for parsed decimal numbers.

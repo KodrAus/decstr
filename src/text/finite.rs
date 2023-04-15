@@ -3,7 +3,7 @@ use crate::{
         ParsedExponent,
         ParsedFinite,
         ParsedSignificand,
-        PreFormattedTextBuf,
+        StrTextBuf,
         TextWriter,
     },
     ParseError,
@@ -27,9 +27,9 @@ pub struct FiniteParser<B> {
     has_digits: bool,
 }
 
-impl<'a> FiniteParser<PreFormattedTextBuf<'a>> {
-    pub fn parse_str(input: &'a str) -> Result<ParsedFinite<PreFormattedTextBuf<'a>>, ParseError> {
-        let mut parser = FiniteParser::begin(PreFormattedTextBuf::new(input));
+impl<'a> FiniteParser<StrTextBuf<'a>> {
+    pub fn parse_str(input: &'a str) -> Result<ParsedFinite<StrTextBuf<'a>>, ParseError> {
+        let mut parser = FiniteParser::begin(StrTextBuf::new(input));
 
         parser.parse_ascii(input.as_bytes())?;
 
