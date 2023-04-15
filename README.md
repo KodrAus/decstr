@@ -19,7 +19,7 @@ Add `decstr` to your `Cargo.toml`:
 version = "0.1.1"
 ```
 
-Any Rust primitive numeric type can be encoding in a `Bitstring`:
+Any Rust primitive numeric type can be encoded in a `Bitstring`:
 
 ```rust
 let decimal = decstr::Bitstring::try_parse_str("123.44")?;
