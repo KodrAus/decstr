@@ -10,6 +10,37 @@ This library does not implement decimal arithmetic. It only supports conversion.
 
 The source is written to be explorable for anybody interested in understanding the IEEE 754 standards for decimal floating points, and hackable for anybody wanting to adapt parts of the implementation for their own needs.
 
+# Getting started
+
+Add `decstr` to your `Cargo.toml`:
+
+```toml
+[dependencies.decstr]
+version = "1"
+```
+
+Any Rust primitive numeric type can be encoding in a `Bitstring`:
+
+```rust
+let decimal = decstr::Bitstring::try_parse_str("123.44")?;
+
+// 123.44
+println!("{}", decimal);
+
+// [196, 73, 48, 34]
+println!("{:?}", decimal.as_le_bytes());
+```
+
+The `Bitstring` type picks the smallest encoding size that will fit a given value:
+
+```rust
+let small = decstr::Bitstring::from(1u8);
+let large = decstr::Bitstring::from(u128::MAX);
+
+assert_eq!(4, small.as_le_bytes().len());
+assert_eq!(20, large.as_le_bytes().len());
+```
+
 # Status
 
 This library is quite new. It's functional, but not optimized and likely contains bugs.
