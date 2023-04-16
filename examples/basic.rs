@@ -1,5 +1,5 @@
 fn main() -> Result<(), decstr::Error> {
-    let decimal = decstr::Bitstring::try_parse_str("123.44")?;
+    let decimal = decstr::Bitstring::from(123.44);
 
     println!("{}", decimal);
     println!("{:?}", decimal.as_le_bytes());
