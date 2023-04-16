@@ -20,8 +20,7 @@ impl BigBitstring {
     Try create a decimal from the given buffer.
 
     The buffer is assumed to be in little-endian byte-order already.
-    This method will fail if the buffer length is not a multiple of 4 bytes, or it's too
-    big to fit in a `Bitstring`.
+    This method will fail if the buffer length is not a multiple of 4 bytes.
     */
     pub fn try_from_le_bytes(bytes: &[u8]) -> Result<Self, Error> {
         if bytes.len() == 0 || bytes.len() % 4 != 0 {
