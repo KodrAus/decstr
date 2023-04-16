@@ -459,7 +459,7 @@ fn write_digits(
     out: impl fmt::Write,
 ) -> Result<(), fmt::Error> {
     write_content(
-        unsafe { str::from_utf8_unchecked(&digits) },
+        str::from_utf8(&digits).map_err(|_| fmt::Error)?,
         digits.len(),
         written,
         out,
@@ -472,7 +472,7 @@ fn write_declet(
     out: impl fmt::Write,
 ) -> Result<(), fmt::Error> {
     write_content(
-        unsafe { str::from_utf8_unchecked(&declet) },
+        str::from_utf8(&declet).map_err(|_| fmt::Error)?,
         declet.len(),
         written,
         out,
@@ -554,7 +554,7 @@ fn write_all_as_scientific(
     } else {
         if let Some(declet) = declets.next() {
             write_content(
-                unsafe { str::from_utf8_unchecked(&[declet[0], b'.', declet[1], declet[2]]) },
+                str::from_utf8(&[declet[0], b'.', declet[1], declet[2]]).map_err(|_| fmt::Error)?,
                 1,
                 written,
                 &mut out,
