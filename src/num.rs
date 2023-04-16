@@ -436,7 +436,8 @@ where
     let parsed = parser.end().expect("failed to finish parsing");
 
     // Convert the parsed value into a float
-    unsafe { str::from_utf8_unchecked(parsed.finite_buf.get_ascii()) }
+    str::from_utf8(parsed.finite_buf.get_ascii())
+        .ok()?
         .parse()
         .ok()
 }

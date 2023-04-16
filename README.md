@@ -22,7 +22,7 @@ version = "0.1.2"
 Any Rust primitive numeric type can be encoded in a `Bitstring`:
 
 ```rust
-let decimal = decstr::Bitstring::try_parse_str("123.44")?;
+let decimal = decstr::Bitstring::from(123.44);
 
 // 123.44
 println!("{}", decimal);

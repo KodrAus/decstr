@@ -64,9 +64,23 @@ enum ParseErrorKind {
     Char { got: u8 },
     End,
     BufferTooSmall,
+    Source,
 }
 
 impl ParseError {
+    /**
+    The source of text itself failed while streaming a number.
+    */
+    pub(crate) fn source() -> Self {
+        ParseError {
+            expected: "",
+            kind: ParseErrorKind::Source,
+        }
+    }
+
+    /**
+    A pre-allocated buffer was too small to fit the complete number.
+    */
     pub(crate) fn buffer_too_small() -> Self {
         ParseError {
             expected: "",
@@ -74,6 +88,9 @@ impl ParseError {
         }
     }
 
+    /**
+    Encountered an unexpected character while parsing a number.
+    */
     pub(crate) fn unexpected_char(got: u8, expected: &'static str) -> Self {
         ParseError {
             expected,
@@ -81,6 +98,9 @@ impl ParseError {
         }
     }
 
+    /**
+    Encountered an unexpected end of input while parsing a number.
+    */
     pub(crate) fn unexpected_end(expected: &'static str) -> Self {
         ParseError {
             expected,
@@ -100,6 +120,9 @@ impl fmt::Display for ParseError {
             }
             ParseErrorKind::BufferTooSmall => {
                 write!(f, "the buffer is too small")?;
+            }
+            ParseErrorKind::Source => {
+                write!(f, "the source produced an error while parsing")?;
             }
         };
 
@@ -144,6 +167,9 @@ impl fmt::Display for OverflowError {
 }
 
 impl OverflowError {
+    /**
+    Encoding a number of the given width into a buffer would require rounding.
+    */
     pub(crate) fn would_overflow(
         max_width_bytes: usize,
         required_width_bytes: usize,
@@ -155,6 +181,9 @@ impl OverflowError {
         }
     }
 
+    /**
+    An encoding buffer returned a different size to the exact size requested.
+    */
     pub(crate) fn exact_size_mismatch(
         got_width_bytes: usize,
         required_width_bytes: usize,
@@ -167,6 +196,9 @@ impl OverflowError {
         }
     }
 
+    /**
+    An exponent couldn't fit in a buffer of the given width.
+    */
     pub(crate) fn exponent_out_of_range(
         max_width_bytes: usize,
         note: &'static str,
@@ -203,6 +235,9 @@ pub struct ConvertError {
 }
 
 impl ConvertError {
+    /**
+    Converting into the given numeric type would overflow.
+    */
     pub(crate) fn would_overflow(target: &'static str) -> Self {
         ConvertError {
             target,
@@ -210,6 +245,9 @@ impl ConvertError {
         }
     }
 
+    /**
+    Converting into the given integer type would require rounding.
+    */
     pub(crate) fn non_integer(target: &'static str) -> Self {
         ConvertError {
             target,
