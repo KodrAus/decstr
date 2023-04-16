@@ -3,7 +3,7 @@ fn main() -> Result<(), decstr::Error> {
 
     println!("{}", decimal);
     println!("{:?}", decimal.as_le_bytes());
-    
+
     let small = decstr::Bitstring::from(1u8);
     let large = decstr::Bitstring::from(u128::MAX);
 

@@ -107,7 +107,7 @@ impl<B: TextWriter> InfinityParser<B> {
     }
 
     pub fn unwrap_context(&mut self, _: fmt::Error) -> ParseError {
-        self.error.take().expect("missing error context")
+        self.error.take().unwrap_or_else(ParseError::source)
     }
 
     fn is_at_start(&self) -> bool {

@@ -335,7 +335,7 @@ impl<B: TextWriter> DecimalParser<B> {
     pub fn unwrap_context(&mut self, err: fmt::Error) -> ParseError {
         match self.0 {
             DecimalParserInner::AtStart { ref mut error, .. } => {
-                error.take().expect("missing error context")
+                error.take().unwrap_or_else(ParseError::source)
             }
             DecimalParserInner::Finite(ref mut parser) => parser.unwrap_context(err),
             DecimalParserInner::Infinity(ref mut parser) => parser.unwrap_context(err),
@@ -980,5 +980,43 @@ mod tests {
 
             assert_eq!(expected_err, &actual_err.to_string(), "{}", input);
         }
+    }
+
+    #[test]
+    fn parse_fmt_no_content() {
+        struct Empty;
+
+        impl fmt::Display for Empty {
+            fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
+                Ok(())
+            }
+        }
+
+        let mut parser = DecimalParser::begin(ArrayTextBuf::<32>::default());
+        parser.parse_fmt(Empty).unwrap();
+
+        let expected_err = "unexpected end of input, expected a finite number, infinity, or NaN";
+
+        assert_eq!(expected_err, &parser.end().unwrap_err().to_string());
+    }
+
+    #[test]
+    fn parse_fmt_failing() {
+        struct Failing;
+
+        impl fmt::Display for Failing {
+            fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
+                Err(fmt::Error)
+            }
+        }
+
+        let mut parser = DecimalParser::begin(ArrayTextBuf::<32>::default());
+
+        let expected_err = "the source produced an error while parsing";
+
+        assert_eq!(
+            expected_err,
+            &parser.parse_fmt(Failing).unwrap_err().to_string()
+        );
     }
 }
