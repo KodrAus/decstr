@@ -87,6 +87,6 @@ pub(crate) fn decimal_from_int<D: BinaryBuf, I: itoa::Integer>(int: I) -> Result
     let int = buf.format(int);
 
     decimal_from_parsed(ParsedDecimal::Finite(
-        FiniteParser::parse_str(int).expect("i8 can always be parsed"),
+        FiniteParser::parse_str(int).expect("primitive integers can always be parsed"),
     ))
 }
