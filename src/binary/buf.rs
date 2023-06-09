@@ -250,11 +250,11 @@ pub(crate) fn minimum_storage_width_bits_for_integer_exponent<N: BinaryExponentM
         //
         // Since the general case over-provisions, for these common sizes we just check them
         // rather than computing so they're always exact.
-        Some(emax) if emax >= -101 && emax <= 90 => 32,
-        Some(emax) if emax >= -398 && emax <= 369 => 64,
-        Some(emax) if emax >= -1559 && emax <= 1512 => 96,
-        Some(emax) if emax >= -6176 && emax <= 6111 => 128,
-        Some(emax) if emax >= -24617 && emax <= 24534 => 160,
+        Some(emax) if (-101..=90).contains(&emax) => 32,
+        Some(emax) if (-398..=369).contains(&emax) => 64,
+        Some(emax) if (-1559..=1512).contains(&emax) => 96,
+        Some(emax) if (-6176..=6111).contains(&emax) => 128,
+        Some(emax) if (-24617..=24534).contains(&emax) => 160,
         // If the exponent is not small, compute an appropriate width
         _ => calculate_minimum_storage_width_bits_for_integer_exponent(emax),
     }

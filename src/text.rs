@@ -212,7 +212,7 @@ impl<B: TextWriter> DecimalParser<B> {
     }
 
     pub fn parse_ascii(&mut self, mut ascii: &[u8]) -> Result<(), ParseError> {
-        while ascii.len() > 0 {
+        while !ascii.is_empty() {
             match self.0 {
                 // If we're parsing a finite number then forward the remaining input to it
                 DecimalParserInner::Finite(ref mut finite) => return finite.parse_ascii(ascii),
@@ -463,7 +463,6 @@ mod tests {
                         decimal_point: Some(ParsedDecimalPoint {
                             decimal_point_range: 2..3,
                         }),
-                        ..Default::default()
                     },
                     finite_exponent: Some(ParsedExponent {
                         exponent_is_negative: false,
@@ -882,11 +881,10 @@ mod tests {
 
     #[test]
     fn parse_finite_invalid() {
-        for (input, expected_err) in &[("", "unexpected end of input, expected a sign or digit")] {
-            let actual_err = FiniteParser::parse_str(input).unwrap_err();
+        let (input, expected_err) = &("", "unexpected end of input, expected a sign or digit");
+        let actual_err = FiniteParser::parse_str(input).unwrap_err();
 
-            assert_eq!(expected_err, &actual_err.to_string(), "{}", input);
-        }
+        assert_eq!(expected_err, &actual_err.to_string(), "{}", input);
     }
 
     #[test]

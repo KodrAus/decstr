@@ -52,7 +52,7 @@ pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Result<I,
                 .ok_or_else(|| ConvertError::would_overflow(type_name::<I>()))
         }
         // ±1230e-1
-        Some(exponent) if (exponent.abs() as usize) < decimal.precision_digits() => {
+        Some(exponent) if (exponent.unsigned_abs() as usize) < decimal.precision_digits() => {
             let trailing_significand = decode_significand_trailing_declets(decimal);
 
             let mut digits = Some(msd.get_ascii())
@@ -64,7 +64,7 @@ pub(crate) fn decimal_to_int<D: BinaryBuf, I: Integer>(decimal: &D) -> Result<I,
                 is_sign_negative(decimal),
                 digits
                     .by_ref()
-                    .take(decimal.precision_digits() - (exponent.abs() as usize)),
+                    .take(decimal.precision_digits() - (exponent.unsigned_abs() as usize)),
             )
             .ok_or_else(|| ConvertError::would_overflow(type_name::<I>()))?;
 

@@ -21,7 +21,7 @@ pub struct InfinityParser<B> {
     error: Option<ParseError>,
 }
 
-const INFINITY_BUF_EXPECTING: &'static [u8] = b"infinity";
+const INFINITY_BUF_EXPECTING: &[u8] = b"infinity";
 
 impl<B: TextWriter> InfinityParser<B> {
     pub fn begin(buf: B) -> Self {

@@ -26,7 +26,7 @@ impl Bitstring {
     big to fit in a `Bitstring`.
     */
     pub fn try_from_le_bytes(bytes: &[u8]) -> Result<Self, Error> {
-        if bytes.len() == 0 || bytes.len() % 4 != 0 {
+        if bytes.is_empty() || bytes.len() % 4 != 0 {
             Err(OverflowError::exact_size_mismatch(
                 bytes.len(),
                 bytes.len() + 4 - (bytes.len() % 4),
