@@ -15,9 +15,9 @@ pub struct Bitstring64(FixedBinaryBuf<8, i32>);
 
 impl Bitstring64 {
     /**
-    Create a decimal from the given buffer.
+    Create a decimal from its representation as a byte array in little endian.
 
-    The buffer is assumed to be in little-endian byte-order already.
+    This matches the internal byte representation of the decimal, regardless of the platform.
     */
     #[inline]
     pub const fn from_le_bytes(bytes: [u8; 8]) -> Self {
@@ -25,15 +25,34 @@ impl Bitstring64 {
     }
 
     /**
-    Get the memory representation of the underlying bitstring buffer.
+    Create a decimal from its representation as a byte array in big endian.
+    */
+    #[inline]
+    pub const fn from_be_bytes(bytes: [u8; 8]) -> Self {
+        Self(FixedBinaryBuf::from_le_bytes([
+            bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0],
+        ]))
+    }
 
-    This buffer is always stored in little-endain byte-order, regardless of the endianness
-    of the platform.
+    /**
+    Return the memory representation of this decimal as a byte array in little-endian byte order.
+
+    This matches the internal byte representation of the decimal, regardless of the platform.
     */
     #[inline]
     pub const fn as_le_bytes(&self) -> [u8; 8] {
         // Even on big-endian platforms we always encode numbers in little-endian order
         self.0.as_le_bytes()
+    }
+
+    /**
+    Return the memory representation of this decimal as a byte array in big-endian
+    (network) byte order.
+    */
+    #[inline]
+    pub const fn to_be_bytes(&self) -> [u8; 8] {
+        let b = self.0.as_le_bytes();
+        [b[7], b[6], b[5], b[4], b[3], b[2], b[1], b[0]]
     }
 
     /**
