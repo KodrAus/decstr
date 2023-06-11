@@ -19,19 +19,21 @@ impl Bitstring128 {
 
     The buffer is assumed to be in little-endian byte-order already.
     */
-    pub fn from_le_bytes(bytes: [u8; 16]) -> Self {
-        Self(FixedBinaryBuf::from(bytes))
+    #[inline]
+    pub const fn from_le_bytes(bytes: [u8; 16]) -> Self {
+        Self(FixedBinaryBuf::from_le_bytes(bytes))
     }
 
     /**
-    Get a reference to the underlying bitstring buffer.
+    Get the memory representation of the underlying bitstring buffer.
 
     This buffer is always stored in little-endain byte-order, regardless of the endianness
     of the platform.
     */
-    pub fn as_le_bytes(&self) -> &[u8; 16] {
+    #[inline]
+    pub const fn as_le_bytes(&self) -> [u8; 16] {
         // Even on big-endian platforms we always encode numbers in little-endian order
-        self.0.as_ref()
+        self.0.as_le_bytes()
     }
 
     /**

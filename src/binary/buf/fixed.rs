@@ -17,9 +17,21 @@ A fixed-size array that always encodes a decimal with the same precision.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct FixedBinaryBuf<const N: usize, E>([u8; N], PhantomData<E>);
 
-impl<const N: usize, E> From<[u8; N]> for FixedBinaryBuf<N, E> {
-    fn from(buf: [u8; N]) -> FixedBinaryBuf<N, E> {
+impl<const N: usize, E> FixedBinaryBuf<N, E> {
+    #[inline]
+    pub(crate) const fn from_le_bytes(buf: [u8; N]) -> Self {
         FixedBinaryBuf(buf, PhantomData)
+    }
+    #[inline]
+    pub(crate) const fn as_le_bytes(&self) -> [u8; N] {
+        self.0
+    }
+}
+
+impl<const N: usize, E> From<[u8; N]> for FixedBinaryBuf<N, E> {
+    #[inline]
+    fn from(buf: [u8; N]) -> FixedBinaryBuf<N, E> {
+        Self::from_le_bytes(buf)
     }
 }
 
