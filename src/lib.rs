@@ -77,7 +77,7 @@ This library does support very high precision in no-std, and can work with arbit
 */
 
 #![deny(missing_docs)]
-#![allow(const_item_mutation)]
+#![allow(const_item_mutation, clippy::derivable_impls, clippy::comparison_chain)]
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 
 extern crate core;
@@ -121,7 +121,7 @@ mod tests {
         let mut s = String::new();
 
         for b in b {
-            if s.len() > 0 {
+            if !s.is_empty() {
                 s.write_char('_').expect("infallible string write");
             }
 

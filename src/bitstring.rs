@@ -345,7 +345,7 @@ macro_rules! try_d2f {
             Try convert a decimal into a binary floating point.
             */
             pub fn $convert(&self) -> Option<$f> {
-                Some($crate::convert::decimal_to_binary_float(&self.0).ok()?)
+                $crate::convert::decimal_to_binary_float(&self.0).ok()
             }
         }
 

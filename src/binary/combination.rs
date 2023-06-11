@@ -153,7 +153,7 @@ pub fn encode_combination_finite<D: BinaryBuf>(
     // If the bytes of the exponent are not aligned with the bytes in the decimal then
     // they'll need to be shifted into position.
     else {
-        let decimal_byte_plus_1_shift = (8 - decimal_byte_shift) as u32;
+        let decimal_byte_plus_1_shift = 8 - decimal_byte_shift;
 
         while decimal_byte_index < max_decimal_byte_index {
             buf[decimal_byte_index] |= exponent[exponent_byte_index] << decimal_byte_shift;
@@ -178,7 +178,7 @@ pub fn encode_combination_finite<D: BinaryBuf>(
         most_significant_exponent_offset(exponent_bits);
 
     let most_significant_exponent =
-        exponent[most_significant_exponent_index] >> most_significant_exponent_offset - 2;
+        exponent[most_significant_exponent_index] >> (most_significant_exponent_offset - 2);
 
     // Write the final bits of the exponent
     // These will be shifted and masked by the combination field
@@ -312,7 +312,7 @@ pub fn decode_combination_finite<D: BinaryBuf>(decimal: &D) -> (D::Exponent, Mos
             };
 
         (
-            most_significant_exponent << most_significant_exponent_offset - 2,
+            most_significant_exponent << (most_significant_exponent_offset - 2),
             most_significant_exponent_index,
             most_significant_digit_bcd,
         )
@@ -365,7 +365,7 @@ pub fn decode_combination_finite<D: BinaryBuf>(decimal: &D) -> (D::Exponent, Mos
     // There's a special case for sizes where the 2 most significant bits are in their own
     // final byte of the exponent.
     else {
-        let decimal_byte_plus_1_shift = (8 - decimal_byte_shift) as u32;
+        let decimal_byte_plus_1_shift = 8 - decimal_byte_shift;
 
         D::Exponent::from_le_bytes(iter::from_fn(|| {
             // If there are more than 2 bytes left then squash them into the next byte of the exponent.

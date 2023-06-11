@@ -52,10 +52,11 @@ impl<B: TextWriter> FiniteParser<B> {
 
     pub fn checked_push_significand_digit(&mut self, digit: u8) -> Result<(), ParseError> {
         if self.buf.remaining_capacity() == Some(0) {
-            return Err(ParseError::buffer_too_small());
+            Err(ParseError::buffer_too_small())
+        } else {
+            self.push_significand_digit(digit);
+            Ok(())
         }
-
-        Ok(self.push_significand_digit(digit))
     }
 
     pub(in crate::text) fn push_significand_digit(&mut self, digit: u8) {
@@ -67,10 +68,11 @@ impl<B: TextWriter> FiniteParser<B> {
 
     pub fn checked_significand_is_negative(&mut self) -> Result<(), ParseError> {
         if self.buf.remaining_capacity() == Some(0) {
-            return Err(ParseError::buffer_too_small());
+            Err(ParseError::buffer_too_small())
+        } else {
+            self.significand_is_negative();
+            Ok(())
         }
-
-        Ok(self.significand_is_negative())
     }
 
     pub(in crate::text) fn significand_is_negative(&mut self) {
@@ -95,10 +97,11 @@ impl<B: TextWriter> FiniteParser<B> {
 
     pub fn checked_begin_exponent(&mut self) -> Result<(), ParseError> {
         if self.buf.remaining_capacity() == Some(0) {
-            return Err(ParseError::buffer_too_small());
+            Err(ParseError::buffer_too_small())
+        } else {
+            self.begin_exponent();
+            Ok(())
         }
-
-        Ok(self.begin_exponent())
     }
 
     pub(in crate::text) fn begin_exponent(&mut self) {
@@ -131,7 +134,7 @@ impl<B: TextWriter> FiniteParser<B> {
         // If there's no exponent then parse the significand
         // The number may be split across multiple calls to `write_str`
         if self.exponent.is_none() {
-            while ascii.len() > 0 {
+            while !ascii.is_empty() {
                 match ascii[0] {
                     // Push a digit to the significand
                     b'0'..=b'9' => {
@@ -170,7 +173,7 @@ impl<B: TextWriter> FiniteParser<B> {
         // The format for the exponent is simpler than the significand
         // It's really just a simple integer
         if let Some(ref mut exponent) = self.exponent {
-            while ascii.len() > 0 {
+            while !ascii.is_empty() {
                 match ascii[0] {
                     // Push a digit to the exponent
                     b'0'..=b'9' => {

@@ -96,8 +96,9 @@ impl Integer for DynamicBinaryExponent {
         DynamicBinaryExponent(i32::from_i32(exp))
     }
 
+    #[inline]
     fn to_i32(&self) -> Option<i32> {
-        (self.0).try_into().ok()
+        Some(self.0)
     }
 
     fn is_negative(&self) -> bool {

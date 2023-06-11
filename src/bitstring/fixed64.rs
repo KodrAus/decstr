@@ -10,6 +10,7 @@ use crate::{
 /**
 A 64bit decimal number.
 */
+#[derive(Clone, Copy)]
 pub struct Bitstring64(FixedBinaryBuf<8, i32>);
 
 impl Bitstring64 {

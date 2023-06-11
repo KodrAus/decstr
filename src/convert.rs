@@ -300,7 +300,7 @@ pub(crate) fn decimal_to_fmt<D: BinaryBuf>(
                         // before falling back to exponential notation
                         const DECIMAL_ZEROES: &str = "0.00000";
 
-                        let leading_zeroes = leading_zeroes.abs() as usize;
+                        let leading_zeroes = leading_zeroes.unsigned_abs() as usize;
 
                         // If the decimal point is before the non-zero digits, and there
                         // aren't too many leading zeroes then write them directly.
@@ -398,7 +398,7 @@ fn adjusted_precision_digits_with_msd_declet(decimal: &impl BinaryBuf) -> usize 
     decimal.precision_digits() + 2
 }
 
-fn skip_leading_zeroes(msd_ascii: u8, mut declets: impl Iterator<Item = [u8; 3]>) -> LeadingZeroes {
+fn skip_leading_zeroes(msd_ascii: u8, declets: impl Iterator<Item = [u8; 3]>) -> LeadingZeroes {
     let mut skipped = 0;
 
     // Check the most-significant-digit
@@ -411,7 +411,7 @@ fn skip_leading_zeroes(msd_ascii: u8, mut declets: impl Iterator<Item = [u8; 3]>
         };
     }
 
-    while let Some(declet) = declets.next() {
+    for declet in declets {
         // If the declet contains just zeroes then skip them entirely
         if declet == [b'0', b'0', b'0'] {
             skipped += 3;
@@ -459,7 +459,7 @@ fn write_digits(
     out: impl fmt::Write,
 ) -> Result<(), fmt::Error> {
     write_content(
-        str::from_utf8(&digits).map_err(|_| fmt::Error)?,
+        str::from_utf8(digits).map_err(|_| fmt::Error)?,
         digits.len(),
         written,
         out,
@@ -551,15 +551,13 @@ fn write_all_as_scientific(
     } = leading_zeroes
     {
         write_decimal_digits(&declet[idx..], 1, written, &mut out)?;
-    } else {
-        if let Some(declet) = declets.next() {
-            write_content(
-                str::from_utf8(&[declet[0], b'.', declet[1], declet[2]]).map_err(|_| fmt::Error)?,
-                1,
-                written,
-                &mut out,
-            )?;
-        }
+    } else if let Some(declet) = declets.next() {
+        write_content(
+            str::from_utf8(&[declet[0], b'.', declet[1], declet[2]]).map_err(|_| fmt::Error)?,
+            1,
+            written,
+            &mut out,
+        )?;
     }
 
     // Write the remaining digits

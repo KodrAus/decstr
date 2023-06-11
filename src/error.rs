@@ -128,7 +128,7 @@ impl fmt::Display for ParseError {
 
         if self.expected.len() == 1 {
             write!(f, ", expected `{}`", self.expected)?;
-        } else if self.expected.len() > 0 {
+        } else if !self.expected.is_empty() {
             write!(f, ", expected {}", self.expected)?;
         }
 
@@ -158,7 +158,7 @@ impl fmt::Display for OverflowError {
             write!(f, "; the width needed is `{}` bytes", required_width_bytes)?;
         }
 
-        if self.note.len() > 0 {
+        if !self.note.is_empty() {
             write!(f, "; {}", self.note)?;
         }
 

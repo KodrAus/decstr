@@ -106,9 +106,9 @@ pub fn encode_significand_trailing_digits_repeat<D: BinaryBuf>(
 /**
 Decode and stream the trailing digits encoded into the decimal.
 */
-pub fn decode_significand_trailing_declets<'a, D: BinaryBuf>(
-    decimal: &'a D,
-) -> impl Iterator<Item = [u8; 3]> + 'a {
+pub fn decode_significand_trailing_declets<D: BinaryBuf>(
+    decimal: &D,
+) -> impl Iterator<Item = [u8; 3]> + '_ {
     let mut bit_index = decimal.trailing_significand_width_bits();
 
     let decimal = decimal.bytes();
@@ -579,7 +579,7 @@ fn encode_bcd_declet_to_dpd(bcd: u16, decimal: &mut [u8], decimal_bit_index: &mu
     let decimal_byte_index = *decimal_bit_index / 8;
 
     decimal[decimal_byte_index] |= (dpd << decimal_byte_shift) as u8;
-    decimal[decimal_byte_index + 1] |= (dpd >> 8 - decimal_byte_shift) as u8;
+    decimal[decimal_byte_index + 1] |= (dpd >> (8 - decimal_byte_shift)) as u8;
 
     *decimal_bit_index += 10;
 }
