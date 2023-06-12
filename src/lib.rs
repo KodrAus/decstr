@@ -132,19 +132,19 @@ mod tests {
     }
 
     fn nan32(payload: u32) -> f32 {
-        f32::from_bits(f32::NAN.to_bits() | (payload & 0x7fffff))
-    }
+        let f = f32::from_bits(f32::NAN.to_bits() | (payload & 0x7fffff));
 
-    fn snan32(payload: u32) -> f32 {
-        f32::from_bits(nan32(payload).to_bits() & !0x800000)
+        assert!(f.is_nan());
+
+        f
     }
 
     fn nan64(payload: u64) -> f64 {
-        f64::from_bits(f64::NAN.to_bits() | (payload & 0x7ffffffffffff))
-    }
+        let f = f64::from_bits(f64::NAN.to_bits() | (payload & 0x7ffffffffffff));
 
-    fn snan64(payload: u64) -> f64 {
-        f64::from_bits(nan64(payload).to_bits() & !0x8000000000000)
+        assert!(f.is_nan());
+
+        f
     }
 
     #[test]
@@ -314,12 +314,26 @@ mod tests {
 
     #[test]
     fn decimal_roundtrip_f32_nan() {
-        for f in [nan32(0), nan32(42), snan32(0), snan32(42)] {
-            let d = Bitstring::from_f32(f);
-            let df = d.to_f32().unwrap();
+        let f = nan32(0);
 
-            assert_eq!(f.to_bits(), df.to_bits());
-        }
+        let d = Bitstring::from_f32(f);
+
+        assert!(d.is_nan());
+
+        let df = d.to_f32().unwrap();
+
+        assert_eq!(f.to_bits(), df.to_bits());
+    }
+
+    #[test]
+    fn decimal_f32_nan_ignores_payload() {
+        let d1 = Bitstring::from_f32(nan32(0));
+        let d2 = Bitstring::from_f32(nan32(42));
+
+        assert!(d1.is_nan());
+        assert!(d2.is_nan());
+
+        assert_eq!(d1.to_string(), d2.to_string());
     }
 
     #[test]
@@ -348,12 +362,26 @@ mod tests {
 
     #[test]
     fn decimal_roundtrip_f64_nan() {
-        for f in [nan64(0), nan64(42), snan64(0), snan64(42)] {
-            let d = Bitstring::from_f64(f);
-            let df = d.to_f64().unwrap();
+        let f = nan64(0);
+        
+        let d = Bitstring::from_f64(f);
 
-            assert_eq!(f.to_bits(), df.to_bits());
-        }
+        assert!(d.is_nan());
+
+        let df = d.to_f64().unwrap();
+
+        assert_eq!(f.to_bits(), df.to_bits());
+    }
+
+    #[test]
+    fn decimal_f64_nan_ignores_payload() {
+        let d1 = Bitstring::from_f64(nan64(0));
+        let d2 = Bitstring::from_f64(nan64(42));
+
+        assert!(d1.is_nan());
+        assert!(d2.is_nan());
+
+        assert_eq!(d1.as_le_bytes(), d2.as_le_bytes());
     }
 
     #[test]

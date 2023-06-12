@@ -367,15 +367,13 @@ macro_rules! impl_binary_float {
                 }
 
                 fn nan_payload(&self) -> Option<Self::NanPayload> {
-                    let bits = self.to_bits() & $nan_mask;
-
-                    // Rust doesn't guarantee `NAN` will carry any particular payload
-                    // so if the bitpattern is the same then ignore it
-                    if bits == 0 || (bits == <$f>::NAN.to_bits() & $nan_mask) {
-                        None
-                    } else {
-                        Some(bits as $i)
-                    }
+                    // Rust doesn't guarantee any particular NaN payload for
+                    // the constants `f32::NAN` and `f64::NAN`, so we just
+                    // unconditionally ignore the payload. This means information
+                    // could be lost encoding a binary floating point through a
+                    // decimal, but NaN payloads on binary floating points have
+                    // rather sketchy portability as it is.
+                    None
                 }
             }
         )*
