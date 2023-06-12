@@ -402,8 +402,6 @@ mod tests {
             "snan",
             "snan(123)",
         ] {
-            println!("f: {}", f);
-
             let d = Bitstring::try_parse_str(f).expect("failed to parse decimal");
 
             // Ensure bitstrings roundtrip through from_le_bytes and to_le_bytes
@@ -420,8 +418,6 @@ mod tests {
 
             let s = d.to_string();
 
-            println!("s: {}", s);
-
             // Ensure bitstrings roundtrip through to_string and try_parse_str
             assert_eq!(
                 bitstr(d.as_le_bytes()),
@@ -435,6 +431,24 @@ mod tests {
                 s
             );
         }
+    }
+
+    #[test]
+    fn decimal_zero() {
+        let zero_from_str = Bitstring::try_parse_str("0").expect("failed to parse");
+        let zero_from_const = Bitstring::zero();
+        let zero_from_int = Bitstring::from(0);
+        let zero_from_float = Bitstring::from(0f64);
+
+        assert_eq!("0", zero_from_str.to_string());
+        assert_eq!("0", zero_from_const.to_string());
+        assert_eq!("0", zero_from_int.to_string());
+
+        // NOTE: We may want to special case `0f64` so it encodes as `0`
+        assert_eq!("0.0", zero_from_float.to_string());
+
+        assert_eq!(zero_from_str.as_le_bytes(), zero_from_const.as_le_bytes());
+        assert_eq!(zero_from_str.as_le_bytes(), zero_from_int.as_le_bytes());
     }
 
     #[test]
