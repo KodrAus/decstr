@@ -369,7 +369,9 @@ macro_rules! impl_binary_float {
                 fn nan_payload(&self) -> Option<Self::NanPayload> {
                     let bits = self.to_bits() & $nan_mask;
 
-                    if bits == 0 {
+                    // Rust doesn't guarantee `NAN` will carry any particular payload
+                    // so if the bitpattern is the same then ignore it
+                    if bits == 0 || (bits == <$f>::NAN.to_bits() & $nan_mask) {
                         None
                     } else {
                         Some(bits as $i)

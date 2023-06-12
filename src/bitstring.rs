@@ -72,7 +72,7 @@ macro_rules! try_s2d {
             /**
             Try parse a decimal from a string.
 
-            This method is more efficient that `try_parse` if you already have a string to parse.
+            This method is more efficient than `try_parse` if you already have a string to parse.
             */
             pub fn try_parse_str(s: &str) -> Result<$d, $crate::Error> {
                 Ok($d($crate::convert::decimal_from_str(s)?))
@@ -251,6 +251,10 @@ macro_rules! f2d {
             let _ = $d::$convert($f::MIN);
             let _ = $d::$convert($f::MAX);
             let _ = $d::$convert($f::MIN_POSITIVE);
+
+            assert!($d::$convert($f::NAN).is_nan());
+            assert!($d::$convert($f::INFINITY).is_infinite());
+            assert!($d::$convert($f::NEG_INFINITY).is_infinite());
         }
     };
 }
@@ -334,6 +338,11 @@ macro_rules! try_f2d {
                 "{} should not have been converted",
                 $f::MIN_POSITIVE
             );
+
+            // NAN and INFINITY constants should still convert
+            assert!($d::$convert($f::NAN).unwrap().is_nan());
+            assert!($d::$convert($f::INFINITY).unwrap().is_infinite());
+            assert!($d::$convert($f::NEG_INFINITY).unwrap().is_infinite());
         }
     };
 }
