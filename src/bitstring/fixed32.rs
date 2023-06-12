@@ -8,7 +8,7 @@ use crate::{
 };
 
 /**
-A 32bit decimal number.
+A [32bit decimal number](https://en.wikipedia.org/wiki/Decimal32_floating-point_format).
 */
 #[derive(Clone, Copy)]
 pub struct Bitstring32(FixedBinaryBuf<4, i32>);

@@ -74,6 +74,29 @@ Decimal numbers in IEEE 754 are non-normalized by-design. The number `1.00` will
 
 This library does support very high precision in no-std, and can work with arbitrary precision when the
 `arbitrary-precision` feature is enabled.
+
+# Conversions
+
+## Binary floating point
+
+This library can convert binary floating points (`f32` and `f64`) into decimals.
+It uses [ryū](https://docs.rs/ryu) to pick an appropriate decimal representation and faithfully encodes that.
+The following cases are worth calling out:
+
+- `0f64` will encode as `0.0`, which is different to `0`.
+- A signaling NaN is encoded as a quiet NaN.
+- NaN payloads are discarded.
+
+## Exponents
+
+The exponent range of a decimal depends on its width in bits.
+Wider decimals support a wider exponent range.
+The actual exponent you can write in a decimal also depends on whether the number is fractional.
+For example, the following all encode the same number at the edge of decimal64's exponent range:
+
+- `100e369`
+- `10.0e370`
+- `1.00e371`
 */
 
 #![deny(missing_docs)]
@@ -83,7 +106,7 @@ This library does support very high precision in no-std, and can work with arbit
 extern crate core;
 
 /*
-If you're exploring the source, there are 3 root modules to look at:
+If you're exploring the source, there are a few root modules to look at:
 
 - `text`: Implements the text-based format. This module is a no-surprises parser that produces
 ranges that cover features of the number, such as the sign, integer digits, decimal point, exponent.
@@ -94,6 +117,8 @@ but it's all explained along the way.
 - `convert`: Combines the `text` and `binary` modules to convert between strings and Rust primitive
 numbers and encoded bitstrings.
 - `bitstring`: The user-facing types.
+- `num`: Some generic infrastructure for working with integers and floating points that support
+conversion and arithmetic.
 
 There is no special handling for decimal numbers of specific precisions. This is a trade-off between
 simplicity and performance. The same implementation handles encoding decimal32 up to decimal256 and beyond.
@@ -363,7 +388,7 @@ mod tests {
     #[test]
     fn decimal_roundtrip_f64_nan() {
         let f = nan64(0);
-        
+
         let d = Bitstring::from_f64(f);
 
         assert!(d.is_nan());
