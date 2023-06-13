@@ -23,8 +23,8 @@ impl<const N: usize, E> FixedBinaryBuf<N, E> {
         FixedBinaryBuf(buf, PhantomData)
     }
     #[inline]
-    pub(crate) const fn as_le_bytes(&self) -> [u8; N] {
-        self.0
+    pub(crate) const fn as_le_bytes(&self) -> &[u8; N] {
+        &self.0
     }
 }
 
