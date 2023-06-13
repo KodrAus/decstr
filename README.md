@@ -16,7 +16,7 @@ Add `decstr` to your `Cargo.toml`:
 
 ```toml
 [dependencies.decstr]
-version = "0.1.3"
+version = "0.2.0"
 ```
 
 Any Rust primitive numeric type can be encoded in a `Bitstring`:
