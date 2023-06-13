@@ -134,67 +134,6 @@ impl Bitstring32 {
     pub const NEG_INFINITY: Self = Bitstring32(FixedBinaryBuf::from_le_bytes([0, 0, 0, 248]));
 }
 
-#[test]
-#[cfg(test)]
-fn consts_32() {
-    use core::{
-        f64::consts as f64const,
-        str::FromStr,
-    };
-
-    // helper fn
-    fn is_eq(a: Bitstring32, b: Bitstring32) {
-        assert_eq!(a.as_le_bytes(), b.as_le_bytes());
-    }
-    // helper fn
-    fn is_eq_f(a: Bitstring32, b: f64) {
-        assert_eq!(
-            a.to_string(),
-            b.to_string()
-                .chars()
-                .take((Bitstring32::DIGITS + 1) as usize)
-                .collect::<String>()
-        );
-    }
-
-    is_eq(Bitstring32::ZERO, Bitstring32::from_str("0").unwrap());
-    is_eq(Bitstring32::ONE, Bitstring32::from_str("1").unwrap());
-    is_eq(Bitstring32::NEG_ONE, Bitstring32::from_str("-1").unwrap());
-
-    is_eq_f(Bitstring32::PI, f64const::PI);
-    is_eq_f(Bitstring32::FRAC_PI_2, f64const::FRAC_PI_2);
-    is_eq_f(Bitstring32::FRAC_PI_3, f64const::FRAC_PI_3);
-    is_eq_f(Bitstring32::FRAC_PI_6, f64const::FRAC_PI_6);
-    is_eq_f(Bitstring32::FRAC_PI_8, f64const::FRAC_PI_8);
-    is_eq_f(Bitstring32::FRAC_1_PI, f64const::FRAC_1_PI);
-    is_eq_f(Bitstring32::FRAC_2_PI, f64const::FRAC_2_PI);
-    is_eq_f(Bitstring32::FRAC_2_SQRT_PI, f64const::FRAC_2_SQRT_PI);
-    is_eq_f(Bitstring32::SQRT_2, f64const::SQRT_2);
-    is_eq_f(Bitstring32::FRAC_1_SQRT_2, f64const::FRAC_1_SQRT_2);
-    is_eq_f(Bitstring32::E, f64const::E);
-    is_eq_f(Bitstring32::LOG2_10, f64const::LOG2_10);
-    is_eq_f(Bitstring32::LOG2_E, f64const::LOG2_E);
-    is_eq_f(Bitstring32::LOG10_2, f64const::LOG10_2);
-    is_eq_f(Bitstring32::LOG10_E, f64const::LOG10_E);
-    is_eq_f(Bitstring32::LN_2, f64const::LN_2);
-    is_eq_f(Bitstring32::LN_10, f64const::LN_10);
-
-    // NOTE: 10e-6 according to https://en.wikipedia.org/wiki/Machine_epsilon#cite_note-2
-    is_eq(
-        Bitstring32::EPSILON,
-        Bitstring32::from_str("0.00001").unwrap(),
-    );
-    is_eq(Bitstring32::MIN, Bitstring32::min());
-    is_eq(Bitstring32::MIN_POSITIVE, Bitstring32::min_positive());
-    is_eq(Bitstring32::MAX, Bitstring32::max());
-    is_eq(Bitstring32::NAN, Bitstring32::from_str("nan").unwrap());
-    is_eq(Bitstring32::INFINITY, Bitstring32::from_str("inf").unwrap());
-    is_eq(
-        Bitstring32::NEG_INFINITY,
-        Bitstring32::from_str("-inf").unwrap(),
-    );
-}
-
 impl Bitstring32 {
     /**
     Create a decimal from its representation as a byte array in little endian.
@@ -312,3 +251,77 @@ try_d2i!(Bitstring32 => to_u16 => u16);
 try_d2i!(Bitstring32 => to_u32 => u32);
 try_d2i!(Bitstring32 => to_u64 => u64);
 try_d2i!(Bitstring32 => to_u128 => u128);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn consts_32() {
+        use core::{
+            f64::consts as f64const,
+            str::FromStr,
+        };
+
+        // helper fn
+        fn is_eq(a: Bitstring32, b: Bitstring32) {
+            assert_eq!(a.as_le_bytes(), b.as_le_bytes());
+        }
+        // helper fn
+        fn is_eq_f(a: Bitstring32, b: f64) {
+            assert_eq!(
+                a.to_string(),
+                b.to_string()
+                    .chars()
+                    .take((Bitstring32::DIGITS + 1) as usize)
+                    .collect::<String>()
+            );
+        }
+
+        is_eq(Bitstring32::ZERO, Bitstring32::from_str("0").unwrap());
+        is_eq(Bitstring32::ONE, Bitstring32::from_str("1").unwrap());
+        is_eq(Bitstring32::NEG_ONE, Bitstring32::from_str("-1").unwrap());
+
+        is_eq_f(Bitstring32::PI, f64const::PI);
+        is_eq_f(Bitstring32::FRAC_PI_2, f64const::FRAC_PI_2);
+        is_eq_f(Bitstring32::FRAC_PI_3, f64const::FRAC_PI_3);
+        is_eq_f(Bitstring32::FRAC_PI_6, f64const::FRAC_PI_6);
+        is_eq_f(Bitstring32::FRAC_PI_8, f64const::FRAC_PI_8);
+        is_eq_f(Bitstring32::FRAC_1_PI, f64const::FRAC_1_PI);
+        is_eq_f(Bitstring32::FRAC_2_PI, f64const::FRAC_2_PI);
+        is_eq_f(Bitstring32::FRAC_2_SQRT_PI, f64const::FRAC_2_SQRT_PI);
+        is_eq_f(Bitstring32::SQRT_2, f64const::SQRT_2);
+        is_eq_f(Bitstring32::FRAC_1_SQRT_2, f64const::FRAC_1_SQRT_2);
+        is_eq_f(Bitstring32::E, f64const::E);
+        is_eq_f(Bitstring32::LOG2_10, f64const::LOG2_10);
+        is_eq_f(Bitstring32::LOG2_E, f64const::LOG2_E);
+        is_eq_f(Bitstring32::LOG10_2, f64const::LOG10_2);
+        is_eq_f(Bitstring32::LOG10_E, f64const::LOG10_E);
+        is_eq_f(Bitstring32::LN_2, f64const::LN_2);
+        is_eq_f(Bitstring32::LN_10, f64const::LN_10);
+
+        // NOTE: 10e-6 according to https://en.wikipedia.org/wiki/Machine_epsilon#cite_note-2
+        is_eq(
+            Bitstring32::EPSILON,
+            Bitstring32::from_str("0.00001").unwrap(),
+        );
+        is_eq(Bitstring32::MIN, Bitstring32::min());
+        is_eq(Bitstring32::MIN_POSITIVE, Bitstring32::min_positive());
+        is_eq(Bitstring32::MAX, Bitstring32::max());
+        is_eq(Bitstring32::NAN, Bitstring32::from_str("nan").unwrap());
+        is_eq(Bitstring32::INFINITY, Bitstring32::from_str("inf").unwrap());
+        is_eq(
+            Bitstring32::NEG_INFINITY,
+            Bitstring32::from_str("-inf").unwrap(),
+        );
+
+        assert_eq!(
+            Bitstring32::MIN_10_EXP,
+            crate::binary::emin::<i32>(32) - (Bitstring32::DIGITS as i32) + 1
+        );
+        assert_eq!(
+            Bitstring32::MAX_10_EXP,
+            crate::binary::emax::<i32>(32) - (Bitstring32::DIGITS as i32) + 1
+        );
+    }
+}

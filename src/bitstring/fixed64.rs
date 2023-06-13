@@ -179,86 +179,6 @@ impl Bitstring64 {
         Bitstring64(FixedBinaryBuf::from_le_bytes([0, 0, 0, 0, 0, 0, 0, 248]));
 }
 
-#[test]
-#[cfg(test)]
-fn consts_64() {
-    use core::str::FromStr;
-
-    // helper fn
-    fn is_eq(a: Bitstring64, b: Bitstring64) {
-        assert_eq!(a.as_le_bytes(), b.as_le_bytes());
-    }
-    // helper fn
-    fn is_eq_f(a: Bitstring64, s: &str) {
-        assert_eq!(
-            a.to_string(),
-            s.chars()
-                .take((Bitstring64::DIGITS + 1) as usize)
-                .collect::<String>()
-        );
-    }
-
-    is_eq(Bitstring64::ZERO, Bitstring64::from_str("0").unwrap());
-    is_eq(Bitstring64::ONE, Bitstring64::from_str("1").unwrap());
-    is_eq(Bitstring64::NEG_ONE, Bitstring64::from_str("-1").unwrap());
-
-    // 37 char strings extracted from https://doc.rust-lang.org/stable/core/f64/consts/index.html
-    const PI: &str = "3.14159265358979323846264338327950288";
-    const TAU: &str = "6.28318530717958647692528676655900577";
-    const FRAC_PI_2: &str = "1.57079632679489661923132169163975144";
-    const FRAC_PI_3: &str = "1.04719755119659774615421446109316763";
-    const FRAC_PI_4: &str = "0.785398163397448309615660845819875721";
-    const FRAC_PI_6: &str = "0.52359877559829887307710723054658381";
-    const FRAC_PI_8: &str = "0.39269908169872415480783042290993786";
-    const FRAC_1_PI: &str = "0.318309886183790671537767526745028724";
-    const FRAC_2_PI: &str = "0.636619772367581343075535053490057448";
-    const FRAC_2_SQRT_PI: &str = "1.12837916709551257389615890312154517";
-    const SQRT_2: &str = "1.41421356237309504880168872420969808";
-    const FRAC_1_SQRT_2: &str = "0.707106781186547524400844362104849039";
-    const E: &str = "2.71828182845904523536028747135266250";
-    const LOG2_10: &str = "3.32192809488736234787031942948939018";
-    const LOG2_E: &str = "1.44269504088896340735992468100189214";
-    const LOG10_2: &str = "0.301029995663981195213738894724493027";
-    const LOG10_E: &str = "0.434294481903251827651128918916605082";
-    const LN_2: &str = "0.693147180559945309417232121458176568";
-    const LN_10: &str = "2.30258509299404568401799145468436421";
-
-    is_eq_f(Bitstring64::PI, PI);
-    is_eq_f(Bitstring64::TAU, TAU);
-    is_eq_f(Bitstring64::FRAC_PI_2, FRAC_PI_2);
-    is_eq_f(Bitstring64::FRAC_PI_3, FRAC_PI_3);
-    is_eq_f(Bitstring64::FRAC_PI_4, FRAC_PI_4);
-    is_eq_f(Bitstring64::FRAC_PI_6, FRAC_PI_6);
-    is_eq_f(Bitstring64::FRAC_PI_8, FRAC_PI_8);
-    is_eq_f(Bitstring64::FRAC_1_PI, FRAC_1_PI);
-    is_eq_f(Bitstring64::FRAC_2_PI, FRAC_2_PI);
-    is_eq_f(Bitstring64::FRAC_2_SQRT_PI, FRAC_2_SQRT_PI);
-    is_eq_f(Bitstring64::SQRT_2, SQRT_2);
-    is_eq_f(Bitstring64::FRAC_1_SQRT_2, FRAC_1_SQRT_2);
-    is_eq_f(Bitstring64::E, E);
-    is_eq_f(Bitstring64::LOG2_10, LOG2_10);
-    is_eq_f(Bitstring64::LOG2_E, LOG2_E);
-    is_eq_f(Bitstring64::LOG10_2, LOG10_2);
-    is_eq_f(Bitstring64::LOG10_E, LOG10_E);
-    is_eq_f(Bitstring64::LN_2, LN_2);
-    is_eq_f(Bitstring64::LN_10, LN_10);
-
-    // NOTE: 10e-15 according to https://en.wikipedia.org/wiki/Machine_epsilon#cite_note-2
-    is_eq(
-        Bitstring64::EPSILON,
-        Bitstring64::from_str("0.00000000000001").unwrap(),
-    );
-    is_eq(Bitstring64::MIN, Bitstring64::min());
-    is_eq(Bitstring64::MIN_POSITIVE, Bitstring64::min_positive());
-    is_eq(Bitstring64::MAX, Bitstring64::max());
-    is_eq(Bitstring64::NAN, Bitstring64::from_str("nan").unwrap());
-    is_eq(Bitstring64::INFINITY, Bitstring64::from_str("inf").unwrap());
-    is_eq(
-        Bitstring64::NEG_INFINITY,
-        Bitstring64::from_str("-inf").unwrap(),
-    );
-}
-
 impl Bitstring64 {
     /**
     Create a decimal from its representation as a byte array in little endian.
@@ -376,3 +296,96 @@ try_d2i!(Bitstring64 => to_u16 => u16);
 try_d2i!(Bitstring64 => to_u32 => u32);
 try_d2i!(Bitstring64 => to_u64 => u64);
 try_d2i!(Bitstring64 => to_u128 => u128);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn consts_64() {
+        use core::str::FromStr;
+
+        // helper fn
+        fn is_eq(a: Bitstring64, b: Bitstring64) {
+            assert_eq!(a.as_le_bytes(), b.as_le_bytes());
+        }
+        // helper fn
+        fn is_eq_f(a: Bitstring64, s: &str) {
+            assert_eq!(
+                a.to_string(),
+                s.chars()
+                    .take((Bitstring64::DIGITS + 1) as usize)
+                    .collect::<String>()
+            );
+        }
+
+        is_eq(Bitstring64::ZERO, Bitstring64::from_str("0").unwrap());
+        is_eq(Bitstring64::ONE, Bitstring64::from_str("1").unwrap());
+        is_eq(Bitstring64::NEG_ONE, Bitstring64::from_str("-1").unwrap());
+
+        // 37 char strings extracted from https://doc.rust-lang.org/stable/core/f64/consts/index.html
+        const PI: &str = "3.14159265358979323846264338327950288";
+        const TAU: &str = "6.28318530717958647692528676655900577";
+        const FRAC_PI_2: &str = "1.57079632679489661923132169163975144";
+        const FRAC_PI_3: &str = "1.04719755119659774615421446109316763";
+        const FRAC_PI_4: &str = "0.785398163397448309615660845819875721";
+        const FRAC_PI_6: &str = "0.52359877559829887307710723054658381";
+        const FRAC_PI_8: &str = "0.39269908169872415480783042290993786";
+        const FRAC_1_PI: &str = "0.318309886183790671537767526745028724";
+        const FRAC_2_PI: &str = "0.636619772367581343075535053490057448";
+        const FRAC_2_SQRT_PI: &str = "1.12837916709551257389615890312154517";
+        const SQRT_2: &str = "1.41421356237309504880168872420969808";
+        const FRAC_1_SQRT_2: &str = "0.707106781186547524400844362104849039";
+        const E: &str = "2.71828182845904523536028747135266250";
+        const LOG2_10: &str = "3.32192809488736234787031942948939018";
+        const LOG2_E: &str = "1.44269504088896340735992468100189214";
+        const LOG10_2: &str = "0.301029995663981195213738894724493027";
+        const LOG10_E: &str = "0.434294481903251827651128918916605082";
+        const LN_2: &str = "0.693147180559945309417232121458176568";
+        const LN_10: &str = "2.30258509299404568401799145468436421";
+
+        is_eq_f(Bitstring64::PI, PI);
+        is_eq_f(Bitstring64::TAU, TAU);
+        is_eq_f(Bitstring64::FRAC_PI_2, FRAC_PI_2);
+        is_eq_f(Bitstring64::FRAC_PI_3, FRAC_PI_3);
+        is_eq_f(Bitstring64::FRAC_PI_4, FRAC_PI_4);
+        is_eq_f(Bitstring64::FRAC_PI_6, FRAC_PI_6);
+        is_eq_f(Bitstring64::FRAC_PI_8, FRAC_PI_8);
+        is_eq_f(Bitstring64::FRAC_1_PI, FRAC_1_PI);
+        is_eq_f(Bitstring64::FRAC_2_PI, FRAC_2_PI);
+        is_eq_f(Bitstring64::FRAC_2_SQRT_PI, FRAC_2_SQRT_PI);
+        is_eq_f(Bitstring64::SQRT_2, SQRT_2);
+        is_eq_f(Bitstring64::FRAC_1_SQRT_2, FRAC_1_SQRT_2);
+        is_eq_f(Bitstring64::E, E);
+        is_eq_f(Bitstring64::LOG2_10, LOG2_10);
+        is_eq_f(Bitstring64::LOG2_E, LOG2_E);
+        is_eq_f(Bitstring64::LOG10_2, LOG10_2);
+        is_eq_f(Bitstring64::LOG10_E, LOG10_E);
+        is_eq_f(Bitstring64::LN_2, LN_2);
+        is_eq_f(Bitstring64::LN_10, LN_10);
+
+        // NOTE: 10e-15 according to https://en.wikipedia.org/wiki/Machine_epsilon#cite_note-2
+        is_eq(
+            Bitstring64::EPSILON,
+            Bitstring64::from_str("0.00000000000001").unwrap(),
+        );
+        is_eq(Bitstring64::MIN, Bitstring64::min());
+        is_eq(Bitstring64::MIN_POSITIVE, Bitstring64::min_positive());
+        is_eq(Bitstring64::MAX, Bitstring64::max());
+        is_eq(Bitstring64::NAN, Bitstring64::from_str("nan").unwrap());
+        is_eq(Bitstring64::INFINITY, Bitstring64::from_str("inf").unwrap());
+        is_eq(
+            Bitstring64::NEG_INFINITY,
+            Bitstring64::from_str("-inf").unwrap(),
+        );
+
+        assert_eq!(
+            Bitstring64::MIN_10_EXP,
+            crate::binary::emin::<i32>(64) - (Bitstring64::DIGITS as i32) + 1
+        );
+        assert_eq!(
+            Bitstring64::MAX_10_EXP,
+            crate::binary::emax::<i32>(64) - (Bitstring64::DIGITS as i32) + 1
+        );
+    }
+}
