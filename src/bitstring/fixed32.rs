@@ -216,7 +216,7 @@ impl Bitstring32 {
     This matches the internal byte representation of the decimal, regardless of the platform.
     */
     #[inline]
-    pub const fn as_le_bytes(&self) -> [u8; 4] {
+    pub const fn as_le_bytes(&self) -> &[u8; 4] {
         // Even on big-endian platforms we always encode numbers in little-endian order
         self.0.as_le_bytes()
     }

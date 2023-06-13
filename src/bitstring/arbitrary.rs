@@ -41,7 +41,7 @@ impl BigBitstring {
     /**
     Get a reference to the underlying bitstring buffer.
 
-    This buffer is always stored in little-endain byte-order, regardless of the endianness
+    This buffer is always stored in little-endian byte-order, regardless of the endianness
     of the platform.
     */
     pub fn as_le_bytes(&self) -> &[u8] {
