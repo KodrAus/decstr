@@ -169,6 +169,12 @@ impl Bitstring128 {
         255, 252, 243, 207, 63, 255, 252, 243, 207, 63, 255, 252, 243, 143, 255, 119,
     ]));
 
+    /// Minimum possible normal power of 10 exponent.
+    pub const MIN_10_EXP: i32 = -6176;
+
+    /// Maximum possible normal power of 10 exponent.
+    pub const MAX_10_EXP: i32 = 6111;
+
     /// Not a Number (NaN), with a zero payload.
     pub const NAN: Self = Bitstring128(FixedBinaryBuf::from_le_bytes([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 124,

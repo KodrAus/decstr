@@ -118,6 +118,12 @@ impl Bitstring32 {
     /// Largest finite value.
     pub const MAX: Self = Bitstring32(FixedBinaryBuf::from_le_bytes([255, 252, 227, 119]));
 
+    /// Minimum possible normal power of 10 exponent.
+    pub const MIN_10_EXP: i32 = -101;
+
+    /// Maximum possible normal power of 10 exponent.
+    pub const MAX_10_EXP: i32 = 90;
+
     /// Not a Number (NaN), with a zero payload.
     pub const NAN: Self = Bitstring32(FixedBinaryBuf::from_le_bytes([0, 0, 0, 124]));
 
