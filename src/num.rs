@@ -12,7 +12,7 @@ use crate::text::{
 };
 
 /**
-Generic binary integers.
+Generic integers.
 */
 pub trait Integer {
     /**
@@ -84,7 +84,7 @@ impl<'a, T: Integer> fmt::Display for AsDisplay<&'a T> {
 }
 
 /**
-Generic binary floating points.
+Generic floating points.
 */
 pub(crate) trait Float {
     /**
@@ -288,7 +288,6 @@ const F32_BUF_SIZE: usize = F32_MAX_MANTISSA_DIGITS + F32_MAX_EXPONENT_DIGITS + 
 // The payload for a NaN is the significand bits, except for the most significant,
 // which is used to identify signaling vs quiet NaNs
 const F32_NAN_PAYLOAD_MASK: u32 = 0b0000_0000_0111_1111_1111_1111_1111_1111u32;
-const F32_SIGNALING_MASK: u32 = 0b0000_0000_1000_0000_0000_0000_0000_0000u32;
 
 // 2f64.powi(52 + 1).log10().ceil() + 1f64
 const F64_MAX_MANTISSA_DIGITS: usize = 17;
@@ -299,11 +298,9 @@ const F64_BUF_SIZE: usize = F64_MAX_MANTISSA_DIGITS + F64_MAX_EXPONENT_DIGITS + 
 // which is used to identify signaling vs quiet NaNs
 const F64_NAN_PAYLOAD_MASK: u64 =
     0b0000_0000_0000_0111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111u64;
-const F64_SIGNALING_MASK: u64 =
-    0b0000_0000_0000_1000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000u64;
 
 macro_rules! impl_binary_float {
-    ($(($f:ty, $i:ty, $u:ty, $text_writer:ty, $nan_mask:ident, $signaling_mask:ident)),*) => {
+    ($(($f:ty, $i:ty, $u:ty, $text_writer:ty, $nan_mask:ident)),*) => {
         $(
             impl Float for $f {
                 type TextWriter = $text_writer;
@@ -327,11 +324,10 @@ macro_rules! impl_binary_float {
                 }
 
                 fn nan(is_negative: bool, is_signaling: bool, payload: Self::NanPayload) -> Self {
-                    let nan = if is_signaling {
-                        <$f>::NAN.to_bits() & !$signaling_mask
-                    } else {
-                        <$f>::NAN.to_bits()
-                    };
+                    // For binary floating points, always encode the NaN as quiet
+                    let _ = is_signaling;
+
+                    let nan = <$f>::NAN.to_bits();
 
                     let f = if payload == 0 {
                         <$f>::from_bits(nan)
@@ -363,17 +359,20 @@ macro_rules! impl_binary_float {
                 }
 
                 fn is_nan_signaling(&self) -> bool {
-                    <$f>::is_nan(*self) && (self.to_bits() & $signaling_mask == 0)
+                    // Signaling for binary floating points isn't particularly
+                    // well defined, so we just unconditionally ignore it and
+                    // assume any NaN is quiet.
+                    false
                 }
 
                 fn nan_payload(&self) -> Option<Self::NanPayload> {
-                    let bits = self.to_bits() & $nan_mask;
-
-                    if bits == 0 {
-                        None
-                    } else {
-                        Some(bits as $i)
-                    }
+                    // Rust doesn't guarantee any particular NaN payload for
+                    // the constants `f32::NAN` and `f64::NAN`, so we just
+                    // unconditionally ignore the payload. This means information
+                    // could be lost encoding a binary floating point through a
+                    // decimal, but NaN payloads on binary floating points have
+                    // rather sketchy portability as it is.
+                    None
                 }
             }
         )*
@@ -386,16 +385,14 @@ impl_binary_float!(
         i32,
         u32,
         ArrayTextBuf<F32_BUF_SIZE>,
-        F32_NAN_PAYLOAD_MASK,
-        F32_SIGNALING_MASK
+        F32_NAN_PAYLOAD_MASK
     ),
     (
         f64,
         i64,
         u64,
         ArrayTextBuf<F64_BUF_SIZE>,
-        F64_NAN_PAYLOAD_MASK,
-        F64_SIGNALING_MASK
+        F64_NAN_PAYLOAD_MASK
     )
 );
 

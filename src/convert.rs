@@ -92,6 +92,14 @@ pub(crate) fn decimal_from_parsed<D: BinaryBuf, T: TextBuf>(
                     let fractional_digits = &buf[fractional_range];
 
                     // Account for the fractional part of the number
+                    // This is where the exponent range that an end-user sees may
+                    // be different than what's actually encoded. For example, the
+                    // exponent range of a decimal64 is -383 to 384, as in
+                    // 10e-383 and 10e384. However, for each fractional digit the
+                    // exponent range is decreased by 1. This doesn't change the
+                    // actual range of what's encoded, it just lets you specify
+                    // the same values in different ways. 1.0e-382 and 1.0e385
+                    // are both equivalent to the values mentioned before.
                     let unbiased_integer_exponent =
                         unbiased_exponent.lower(fractional_digits.len());
 
